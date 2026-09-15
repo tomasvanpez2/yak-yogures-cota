@@ -2,26 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #FAF6F1;
+    --foreground: #1C1C1E;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    color: var(--foreground);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar — warm, subtle */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C4C0BA;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #A6A29C;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* CTA button primary — mango pill */
+  .cta-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-yak-mango text-white font-semibold
+           px-8 py-4 rounded-full
+           transition-all duration-300 ease-out
+           hover:brightness-110 hover:shadow-lg hover:shadow-yak-mango/20
+           active:scale-[0.97]
+           text-base md:text-lg;
+    font-family: var(--font-bricolage), system-ui, sans-serif;
+  }
+
+  /* CTA button secondary — navy outline pill */
+  .cta-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border-2 border-yak-navy/20 text-yak-navy font-semibold
+           px-8 py-4 rounded-full
+           transition-all duration-300 ease-out
+           hover:border-yak-navy hover:bg-yak-navy/5
+           active:scale-[0.97]
+           text-base md:text-lg;
+    font-family: var(--font-bricolage), system-ui, sans-serif;
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Reduced motion — all animations gracefully disabled */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
