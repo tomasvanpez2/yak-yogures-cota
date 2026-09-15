@@ -442,32 +442,44 @@ function plural(n: number, singular: string, pluralWord: string): string {
 
 /**
  * Construye el texto del resumen semanal: todos los pedidos cuya entrega cae en
- * la semana actual (lunes a domingo), agrupados por día de ruta/zona, con total
- * por sabor y total general.
+ * la semana actual + la siguiente (2 semanas, lunes a domingo), agrupados por
+ * día de ruta/zona, con total por sabor y total general.
  */
 export function buildWeeklySummary(orders: Order[], now: Date = new Date()): string {
-  const { start, end } = currentWeekRange(now)
+  const { start } = currentWeekRange(now)
+  // Rango de 2 semanas: lunes de la semana actual → domingo de la próxima.
+  const week2Start = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const end = new Date(week2Start.getTime() + 7 * 24 * 60 * 60 * 1000 - 1)
 
-  const weekOrders = orders.filter((o) => {
+  const week1 = orders.filter((o) => {
     const d = new Date(o.deliveryDate).getTime()
-    return d >= start.getTime() && d <= end.getTime()
+    return d >= start.getTime() && d < week2Start.getTime()
+  })
+  const week2 = orders.filter((o) => {
+    const d = new Date(o.deliveryDate).getTime()
+    return d >= week2Start.getTime() && d <= end.getTime()
   })
 
-  if (weekOrders.length === 0) {
-    return `📊 RESUMEN SEMANAL\n\nNo hay pedidos para esta semana.`
+  if (week1.length + week2.length === 0) {
+    return `📊 RESUMEN SEMANAL\n\nNo hay pedidos para las próximas 2 semanas.`
   }
 
-  // Agrupa por zona conservando el orden de ruta (lunes=Chía ... sábado=Cota).
-  const byZone: Record<string, Order[]> = {}
-  for (const o of weekOrders) {
-    const zone = o.customer.zone
-    if (byZone[zone]) byZone[zone].push(o)
-    else byZone[zone] = [o]
+  // Agrupa una lista de pedidos por zona conservando el orden de ruta.
+  const groupByZone = (list: Order[]): [string, Order[]][] => {
+    const byZone: Record<string, Order[]> = {}
+    for (const o of list) {
+      const zone = o.customer.zone
+      if (byZone[zone]) byZone[zone].push(o)
+      else byZone[zone] = [o]
+    }
+    return DELIVERY_ROUTES.map((r) => r.zoneId)
+      .filter((zid) => byZone[zid])
+      .map((zid) => [zid, byZone[zid]] as [string, Order[]])
   }
 
   const lines: string[] = [
-    '📊 RESUMEN SEMANAL DE PEDIDOS',
-    `🗓 Semana ${formatWeekRange(start)}`,
+    '📊 RESUMEN DE 2 SEMANAS',
+    `🗓 ${formatWeekRange(start)} → ${formatWeekRange(week2Start)}`,
     '',
   ]
 
@@ -475,63 +487,80 @@ export function buildWeeklySummary(orders: Order[], now: Date = new Date()): str
   const flavorTotals: Record<string, number> = {}
   for (const id of Object.keys(PRODUCTS)) flavorTotals[id] = 0
 
-  let grandOrders = 0
-  let grandUnits = 0
-  let grandTotal = 0
+  // Renderiza una sección completa de una semana (lista de zonas + pedidos).
+  const renderWeek = (
+    tag: string,
+    weekStart: Date,
+    list: Order[]
+  ): string[] => {
+    if (list.length === 0) return []
+    const out: string[] = [
+      `┌─ ${tag} ─┐`,
+      `│ 📅 ${formatWeekRange(weekStart)}`,
+    ]
 
-  for (const route of DELIVERY_ROUTES) {
-    const list = byZone[route.zoneId]
-    if (!list || list.length === 0) continue
+    for (const [zoneId, zoneOrders] of groupByZone(list)) {
+      const zone = ZONES[zoneId]
+      out.push(`│ ${routeDayFor(zoneId)} · ${zone.name} (${zoneOrders.length}) —`)
 
-    const zone = ZONES[route.zoneId]
-    lines.push(`— ${route.day} · ${zone.name} (${list.length}) —`)
+      let zoneTotal = 0
+      let zoneUnits = 0
+      for (const o of zoneOrders) {
+        const emoji = STATUS_EMOJI[o.status] ?? '•'
+        const products = o.items
+          .map((i) => {
+            const name = PRODUCTS[i.productId]?.name ?? i.productId
+            const sugar = i.sugar ? ` (${sugarLabel(i.sugar)})` : ''
+            flavorTotals[i.productId] = (flavorTotals[i.productId] ?? 0) + i.quantity
+            return `${i.quantity}x ${name}${sugar}`
+          })
+          .join(', ')
 
-    let zoneTotal = 0
-    let zoneUnits = 0
+        out.push(`│   ${emoji} ${o.id} · ${o.customer.name}`)
+        out.push(`│     ${products}`)
+        out.push(`│     💰 $${o.total.toLocaleString('es-CO')}`)
 
-    for (const o of list) {
-      const emoji = STATUS_EMOJI[o.status] ?? '•'
-      const products = o.items
-        .map((i) => {
-          const name = PRODUCTS[i.productId]?.name ?? i.productId
-          const sugar = i.sugar ? ` (${sugarLabel(i.sugar)})` : ''
-          flavorTotals[i.productId] = (flavorTotals[i.productId] ?? 0) + i.quantity
-          return `${i.quantity}x ${name}${sugar}`
-        })
-        .join(', ')
+        zoneTotal += o.total
+        zoneUnits += o.totalUnits
+      }
 
-      lines.push(`  ${emoji} ${o.id} · ${o.customer.name}`)
-      lines.push(`     ${products}`)
-      lines.push(`     💰 $${o.total.toLocaleString('es-CO')}`)
-
-      zoneTotal += o.total
-      zoneUnits += o.totalUnits
+      const ped = plural(zoneOrders.length, 'pedido', 'pedidos')
+      out.push(`│   👥 ${zoneOrders.length} ${ped} · ${zoneUnits} unid · 💰 $${zoneTotal.toLocaleString('es-CO')}`)
     }
 
-    const ped = plural(list.length, 'pedido', 'pedidos')
-    lines.push(`  👥 ${list.length} ${ped} · ${zoneUnits} unid · 💰 $${zoneTotal.toLocaleString('es-CO')}`)
-    lines.push('')
-
-    grandOrders += list.length
-    grandUnits += zoneUnits
-    grandTotal += zoneTotal
+    out.push(`└───────────┘`)
+    out.push('')
+    return out
   }
 
-  // Total por sabor (todas las zonas).
-  lines.push('— 🍦 SABORES DE LA SEMANA —')
+  // Semana 1 y Semana 2, cada una organizada por zona/ruta.
+  lines.push(...renderWeek('SEMANA 1', start, week1))
+  lines.push(...renderWeek('SEMANA 2', week2Start, week2))
+
+  // Total por sabor (2 semanas).
+  lines.push('— 🍦 SABORES (2 SEMANAS) —')
   for (const id of Object.keys(PRODUCTS)) {
-    const name = PRODUCTS[id]?.name ?? id
-    lines.push(`• ${name}: ${flavorTotals[id]} unid`)
+    lines.push(`• ${PRODUCTS[id]?.name}: ${flavorTotals[id]} unid`)
   }
   lines.push('')
 
+  const grandOrders = week1.length + week2.length
+  const grandUnits = [...week1, ...week2].reduce((acc, o) => acc + o.totalUnits, 0)
+  const grandTotal = [...week1, ...week2].reduce((acc, o) => acc + o.total, 0)
+
   const pedTot = plural(grandOrders, 'pedido', 'pedidos')
   const unidTot = plural(grandUnits, 'unidad', 'unidades')
-  lines.push('—— TOTAL SEMANA ——')
+  lines.push('—— TOTAL (2 SEMANAS) ——')
   lines.push(`👥 ${grandOrders} ${pedTot} · ${grandUnits} ${unidTot}`)
   lines.push(`💰 $${grandTotal.toLocaleString('es-CO')} COP`)
 
   return lines.join('\n')
+}
+
+/** Devuelve la etiqueta de día de ruta de una zona (ej: 'MIÉRCOLES'). */
+function routeDayFor(zoneId: string): string {
+  const route = DELIVERY_ROUTES.find((r) => r.zoneId === zoneId)
+  return route ? route.day : zoneId
 }
 
 export async function sendWeeklySummary(orders: Order[]): Promise<boolean> {

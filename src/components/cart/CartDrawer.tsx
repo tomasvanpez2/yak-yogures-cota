@@ -470,13 +470,24 @@ export default function CartDrawer() {
               </p>
 
               {!paymentReported ? (
-                <button
-                  onClick={handlePaymentReported}
-                  disabled={paymentReporting}
-                  className="w-full py-3 rounded-full bg-yak-navy text-white font-medium text-sm hover:bg-yak-navy/90 transition-colors disabled:opacity-50"
-                >
-                  {paymentReporting ? 'Reportando...' : 'Ya realicé el pago'}
-                </button>
+                <>
+                  <div className="w-full p-3 rounded-xl bg-yak-griego/50 border border-yak-griego mb-3">
+                    <p className="text-xs text-yak-muted leading-relaxed">
+                      💡 Cuando realices el pago y presiones el botón, le
+                      informaremos al equipo de YAK para que{" "}
+                      <strong>confirmen tu pedido</strong> y te avisemos por
+                      WhatsApp. Mientras tanto, tu pedido queda{" "}
+                      <strong>pendiente de pago</strong>.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handlePaymentReported}
+                    disabled={paymentReporting}
+                    className="w-full py-3 rounded-full bg-yak-navy text-white font-medium text-sm hover:bg-yak-navy/90 transition-colors disabled:opacity-50"
+                  >
+                    {paymentReporting ? 'Reportando...' : 'Ya realicé el pago'}
+                  </button>
+                </>
               ) : (
                 <div className="space-y-3 w-full">
                   <p className="text-sm text-yak-feijoa font-medium">
