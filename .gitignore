@@ -26,7 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files (CONTIENEN SECRETOS — no subir)
-.env
+
 .env*.local
 
 # datos de runtime (pedidos JSON — en Render vive en un disco persistente montado en /data)
