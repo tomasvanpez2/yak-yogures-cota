@@ -121,6 +121,10 @@ export default function CartDrawer() {
       const data = await res.json()
       if (data.success) {
         setOrderResult(data.order)
+        // Nuevo pedido ⇒ reinicia el flujo de pago. Sin esto, si un pedido
+        // anterior ya fue reportado ("Ya realicé el pago"), paymentReported
+        // queda en true y el botón NO vuelve a aparecer en el segundo pedido.
+        setPaymentReported(false)
         setView('confirmation')
       } else {
         setErrors({ submit: data.error || 'Error al crear el pedido' })

@@ -359,14 +359,15 @@ export async function sendDailySummary(orders: DailySummaryOrder[]): Promise<boo
 // Resumen semanal de pedidos (se envía al confirmar un pago desde Telegram)
 // ---------------------------------------------------------------------------
 
-// Estados que se incluyen en el resumen semanal: todo el trabajo por hacer de
-// la semana (pagos pendientes, por verificar, confirmados y en proceso).
+// Estados que se incluyen en el resumen semanal: SOLO pedidos con pago
+// CONFIRMADO (PAID en adelante). Un pedido pendiente de pago, por verificar o
+// rechazado NO aparece en la lista: hasta que el equipo presiona CONFIRMAR
+// PAGO (pasa a PAID), no se cuenta en el resumen.
 export const WEEKLY_SUMMARY_STATUSES = [
-  ORDER_STATUSES.PENDING_PAYMENT,
-  ORDER_STATUSES.PAYMENT_REPORTED,
   ORDER_STATUSES.PAID,
   ORDER_STATUSES.IN_PRODUCTION,
   ORDER_STATUSES.OUT_FOR_DELIVERY,
+  ORDER_STATUSES.DELIVERED,
 ]
 
 const STATUS_EMOJI: Record<string, string> = {
