@@ -1,22 +1,26 @@
 /**
  * Persistencia JSON local con escritura atómica.
  *
- * - Los pedidos se almacenan en `data/orders.json` como un array.
- * - Se usa un lock de proceso (async mutex) para evitar condiciones de carrera
- *   cuando dos requests escriben casi simultáneamente.
- * - La escritura es atómica: se escribe a un archivo temporal y luego se renombra,
- *   evitando que un crash deje el archivo corrupto.
+ * Los pedidos se almacenan en `data/orders.json` como un array.
+ *
+ * IMPORTANTE (Vercel): en las funciones serverless la carpeta del proyecto es
+ * de SOLO LECTURA (excepto `/tmp`). Para que los pedidos nunca fallen con
+ * "Error al procesar el pedido", al arrancar se elige el PRIMER directorio
+ * realmente escribible, en este orden:
+ *   1. `DATA_DIR` (variable de entorno, si se define)
+ *   2. `/data` (disco persistente de Render)
+ *   3. `<cwd>/data` (disco local de desarrollo)
+ *   4. `/tmp/yak-data` (respaldo efímero en Vercel sin KV)
+ *
+ * Nota: en `/tmp` los datos pueden perderse si Vercel reinicia la función.
+ * Para datos DUrables en producción usa Vercel KV (ver kv-store.ts), que se
+ * activa solo con KV_REST_API_URL/KV_REST_API_TOKEN (store.ts decide).
  */
 
-import { readFile, writeFile, rename, mkdir } from 'fs/promises'
+import { readFile, writeFile, rename, mkdir, unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import type { Order } from './order'
-
-// En Render, el disco persistente se monta en /data (absoluto).
-// En local, usamos data/ dentro del cwd.
-const DATA_DIR = process.env.DATA_DIR || (existsSync('/data') ? '/data' : path.join(process.cwd(), 'data'))
-const ORDERS_FILE = path.join(DATA_DIR, 'orders.json')
 
 // ---------------------------------------------------------------------------
 // Lock de proceso (async mutex) — evita race conditions entre requests
@@ -31,16 +35,11 @@ function acquireLock(): { release: () => void } {
 
   lockPromise = lockPromise.then(() => waitPromise)
 
-  // Cuando el lock anterior se libera, encadena el nuestro
   return {
     release: () => releaseFn!(),
   }
 }
 
-/**
- * Ejecuta una función bajo el lock de escritura.
- * Garantiza que solo una escritura ocurre a la vez.
- */
 async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
   await lockPromise
   const lock = acquireLock()
@@ -52,33 +51,68 @@ async function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 // ---------------------------------------------------------------------------
+// Resolución del directorio escribible (se hace una sola vez)
+// ---------------------------------------------------------------------------
+let resolvedFile: string | null = null
+
+async function resolveOrdersFile(): Promise<string> {
+  if (resolvedFile) return resolvedFile
+
+  const candidates: string[] = []
+  if (process.env.DATA_DIR) candidates.push(process.env.DATA_DIR)
+  if (existsSync('/data')) candidates.push('/data')
+  candidates.push(path.join(process.cwd(), 'data'))
+  candidates.push('/tmp/yak-data')
+
+  for (const dir of candidates) {
+    try {
+      // Prueba real de escritura: crea un archivo temporal y lo borra.
+      await mkdir(dir, { recursive: true })
+      const probe = path.join(dir, `__probe-${process.pid}-${Date.now()}.tmp`)
+      await writeFile(probe, '1')
+      await unlink(probe).catch(() => {})
+      resolvedFile = path.join(dir, 'orders.json')
+      console.log(`[json-store] 💾 Persistiendo pedidos en: ${resolvedFile}`)
+      return resolvedFile
+    } catch {
+      // Sigue con el siguiente candidato
+    }
+  }
+
+  throw new Error(
+    '[json-store] No hay un directorio escribible para perseguir pedidos. Conecta Vercel KV.'
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Lectura / escritura del archivo JSON
 // ---------------------------------------------------------------------------
 
-/** Lee todos los pedidos del archivo. Si no existe o está corrupto, devuelve []. */
+/** Lee todos los pedidos. Si no existe o está corrupto, devuelve []. */
 export async function readOrders(): Promise<Order[]> {
   try {
-    if (!existsSync(ORDERS_FILE)) return []
-    const raw = await readFile(ORDERS_FILE, 'utf-8')
+    const file = await resolveOrdersFile()
+    if (!existsSync(file)) return []
+    const raw = await readFile(file, 'utf-8')
     if (!raw.trim()) return []
     const data = JSON.parse(raw)
     return Array.isArray(data) ? data : []
-  } catch {
-    console.warn('[json-store] Error leyendo orders.json, devuelve []')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('escribible')) throw err
+    console.warn('[json-store] Error leyendo pedidos, devuelve []')
     return []
   }
 }
 
-/**
- * Escritura atómica: escribe a un .tmp y luego renombra.
- * Esto evita que un crash deje el archivo principal corrupto.
- */
-async function atomicWrite(filePath: string, data: Order[]): Promise<void> {
-  await mkdir(path.dirname(filePath), { recursive: true })
-  const tmpPath = `${filePath}.tmp.${Date.now()}`
+/** Escritura atómica: escribe a un .tmp y luego renombra. */
+async function atomicWrite(data: Order[]): Promise<void> {
+  const file = await resolveOrdersFile()
+  await mkdir(path.dirname(file), { recursive: true })
+  const tmpPath = `${file}.tmp.${Date.now()}`
   const json = JSON.stringify(data, null, 2)
   await writeFile(tmpPath, json, 'utf-8')
-  await rename(tmpPath, filePath)
+  await rename(tmpPath, file)
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +150,7 @@ export async function insertOrder(order: Order): Promise<Order> {
     if (existing) return existing // idempotente
 
     orders.push(order)
-    await atomicWrite(ORDERS_FILE, orders)
+    await atomicWrite(orders)
     return order
   })
 }
@@ -124,7 +158,6 @@ export async function insertOrder(order: Order): Promise<Order> {
 /**
  * Actualiza un pedido existente aplicando un merge parcial.
  * Retorna null si no se encontró el pedido.
- * Escritura atómica bajo lock.
  */
 export async function updateOrder(
   orderId: string,
@@ -136,7 +169,7 @@ export async function updateOrder(
     if (idx === -1) return null
 
     orders[idx] = { ...orders[idx], ...updates }
-    await atomicWrite(ORDERS_FILE, orders)
+    await atomicWrite(orders)
     return orders[idx]
   })
 }
@@ -144,7 +177,6 @@ export async function updateOrder(
 /**
  * Actualiza un pedido solo si su status actual coincide con `expectedStatus`.
  * Retorna el pedido actualizado, o null si no se cumplió la condición.
- * Esto garantiza idempotencia y evita transiciones inválidas.
  */
 export async function updateOrderStatus(
   orderId: string,
@@ -158,7 +190,7 @@ export async function updateOrderStatus(
     if (orders[idx].status !== expectedStatus) return null // condición no cumplida
 
     orders[idx] = { ...orders[idx], ...updates }
-    await atomicWrite(ORDERS_FILE, orders)
+    await atomicWrite(orders)
     return orders[idx]
   })
 }
