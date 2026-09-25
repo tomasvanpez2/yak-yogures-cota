@@ -240,17 +240,26 @@ describe('Delivery Engine — casos inválidos y configuración', () => {
   it('tarifas de domicilio oficiales', () => {
     expect(ZONES.COTA.deliveryCost).toBe(0)
     expect(ZONES.CHIA.deliveryCost).toBe(5000)
-    expect(ZONES.CAJICA.deliveryCost).toBe(6000)
+    expect(ZONES.CAJICA.deliveryCost).toBe(7000)
     expect(ZONES.CALLE_80.deliveryCost).toBe(8000)
     expect(ZONES.SUBA.deliveryCost).toBe(8000)
     expect(ZONES.SUR.deliveryCost).toBe(12000)
   })
 
-  it('domicilio gratis con 3 o más unidades', () => {
-    expect(getDeliveryCost('CHIA', 3)).toBe(0)
-    expect(getDeliveryCost('CHIA', 5)).toBe(0)
-    expect(getDeliveryCost('CHIA', 1)).toBe(5000)
-    expect(getDeliveryCost('SUR', 2)).toBe(12000)
+  it('domicilio gratis para fundadores y Cota; tarifa normal para resto', () => {
+    // Fundador: domicilio gratis en cualquier zona
+    expect(getDeliveryCost('CHIA', true)).toBe(0)
+    expect(getDeliveryCost('SUR', true)).toBe(0)
+    expect(getDeliveryCost('CALLE_80', true)).toBe(0)
+    // Cota: domicilio gratis para todos
+    expect(getDeliveryCost('COTA', false)).toBe(0)
+    expect(getDeliveryCost('COTA', true)).toBe(0)
+    // Resto: tarifa oficial
+    expect(getDeliveryCost('CHIA', false)).toBe(5000)
+    expect(getDeliveryCost('CAJICA', false)).toBe(7000)
+    expect(getDeliveryCost('CALLE_80', false)).toBe(8000)
+    expect(getDeliveryCost('SUBA', false)).toBe(8000)
+    expect(getDeliveryCost('SUR', false)).toBe(12000)
   })
 })
 

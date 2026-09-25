@@ -6,12 +6,20 @@ import {
   validateZone,
   validateOrderItems,
 } from './order'
-import { PRODUCTS, getDeliveryCost, ORDER_STATUSES, resolveSugar, type OrderStatus } from './config'
+import {
+  PRODUCTS,
+  getDeliveryCost,
+  ORDER_STATUSES,
+  resolveSugar,
+  type OrderStatus,
+} from './config'
 import { calculateDeliveryDate } from './delivery-engine'
 import {
   getOrderById,
   insertOrder,
   updateOrderStatus,
+  getCustomerByPhone,
+  upsertCustomer,
 } from './store'
 import {
   getTelegramConfig,
@@ -19,6 +27,13 @@ import {
   sendPaymentConfirmed,
   sendPaymentRejected,
 } from './telegram'
+import {
+  BOTTLE_DISCOUNT,
+  BOTTLES_FOR_FREE,
+  normalizePhone,
+  maxReturnableBottles,
+  type Customer,
+} from './client-types'
 
 // Máquina de estados: solo se permiten estas transiciones.
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -47,6 +62,7 @@ export interface CreateOrderInput {
     apartment?: string
     instructions?: string
   }
+  bottlesToReturn?: number
 }
 
 export type ServiceResult<T> =
@@ -57,7 +73,10 @@ export async function getOrder(orderId: string): Promise<Order | null> {
   return getOrderById(orderId)
 }
 
-/** Crea un pedido: valida, recalcula precios/delivery/total y persiste en JSON. */
+/**
+ * Crea un pedido: valida, busca cliente, aplica descuentos por botellas
+ * retornables y programa de fidelidad (10+1), calcula domicilio y persiste.
+ */
 export async function createOrder(
   input: CreateOrderInput
 ): Promise<ServiceResult<Order>> {
@@ -73,10 +92,19 @@ export async function createOrder(
   )
     return { ok: false, error: 'Datos de cliente incompletos' }
   if (!validatePhone(input.customer.phone))
-    return { ok: false, error: 'Número de WhatsApp inválido' }
+    return { ok: false, error: 'Número de WhatsApp inválido (10 dígitos)' }
   if (!validateZone(input.customer.zone))
     return { ok: false, error: 'Zona no válida' }
 
+  const normalizedPhone = normalizePhone(input.customer.phone)
+
+  // 1. Buscar si el cliente ya existe en el sistema
+  const existingCustomer = await getCustomerByPhone(normalizedPhone)
+  const isFounder = existingCustomer?.isFounder ?? false
+  const bottlesInPossession = existingCustomer?.bottlesInPossession ?? 0
+  const bottlesHistory = existingCustomer?.bottlesHistory ?? 0
+
+  // 2. Calcular subtotal y unidades compradas
   let subtotal = 0
   let totalUnits = 0
   const orderItems = input.items.map((item) => {
@@ -84,7 +112,6 @@ export async function createOrder(
     if (!product) throw new Error(`Producto no encontrado: ${item.productId}`)
     subtotal += product.price * item.quantity
     totalUnits += item.quantity
-    // Azúcar: el server normaliza la regla (Griego nunca lleva; fruta default 'CON').
     const sugar = resolveSugar(item.productId, item.sugar)
     return {
       productId: item.productId,
@@ -94,8 +121,29 @@ export async function createOrder(
     }
   })
 
-  const deliveryCost = getDeliveryCost(input.customer.zone, totalUnits)
-  const total = subtotal + deliveryCost
+  // 3. Descuento de retorno de botellas:
+  // Solo se pueden devolver botellas que ya tiene en casa (primer pedido = 0),
+  // y como máximo las que compra en este pedido.
+  const requestedReturn = Math.max(0, input.bottlesToReturn ?? 0)
+  const allowedReturn = maxReturnableBottles(bottlesInPossession, totalUnits)
+  const actualBottlesReturned = Math.min(requestedReturn, allowedReturn)
+  const bottleDiscount = actualBottlesReturned * BOTTLE_DISCOUNT
+
+  // 4. Programa de Fidelidad (10 + 1):
+  // Cada 10 botellas acumuladas en el historial otorga 1 yogur gratis.
+  let loyaltyDiscount = 0
+  if (bottlesHistory >= BOTTLES_FOR_FREE && totalUnits > 0) {
+    // Se descuenta el producto más económico del pedido (ej. $19.000 fruta o $25.000 si solo lleva griego)
+    const cheapestPrice = Math.min(...orderItems.map((i) => i.price))
+    loyaltyDiscount = cheapestPrice
+  }
+
+  // 5. Costo de Domicilio:
+  // $0 si es Fundador o la zona es Cota. De lo contrario tarifa oficial.
+  const deliveryCost = getDeliveryCost(input.customer.zone, isFounder)
+
+  // Total final asegurando que no sea negativo
+  const total = Math.max(0, subtotal - bottleDiscount - loyaltyDiscount + deliveryCost)
 
   const now = new Date()
   const info = calculateDeliveryDate(now, input.customer.zone)
@@ -103,11 +151,18 @@ export async function createOrder(
   const order: Order = {
     id: generateOrderId(),
     items: orderItems,
-    customer: input.customer,
+    customer: {
+      ...input.customer,
+      phone: normalizedPhone,
+    },
     subtotal,
+    bottlesReturned: actualBottlesReturned,
+    bottleDiscount,
+    loyaltyDiscount,
     deliveryCost,
     total,
     totalUnits,
+    isFounderApplied: isFounder,
     deliveryDate: info.deliveryDate.toISOString(),
     deliveryDay: info.dayName,
     cutoffDate: info.cutoffDate.toISOString(),
@@ -117,15 +172,31 @@ export async function createOrder(
     updatedAt: now.toISOString(),
   }
 
-  // Persiste en JSON — insertOrder es idempotente (si ya existe el ID, retorna el existente)
+  // 6. Guardar/actualizar cliente (upsert)
+  const customerToSave: Customer = {
+    phone: normalizedPhone,
+    name: input.customer.name.trim(),
+    address: input.customer.address.trim(),
+    zone: input.customer.zone,
+    apartment: input.customer.apartment?.trim() || undefined,
+    instructions: input.customer.instructions?.trim() || undefined,
+    isFounder,
+    bottlesInPossession,
+    bottlesHistory,
+    createdAt: existingCustomer?.createdAt || now.toISOString(),
+    updatedAt: now.toISOString(),
+  }
+  await upsertCustomer(customerToSave).catch((err) => {
+    console.error('[order-service] Error guardando cliente:', err)
+  })
+
+  // 7. Persistir pedido
   const saved = await insertOrder(order)
   return { ok: true, data: saved }
 }
 
 /**
  * Reporte de pago → PAYMENT_REPORTED.
- * Idempotente: si ya está en PAYMENT_REPORTED, retorna el pedido sin cambios.
- * Desplaza la entrega a la semana siguiente si el pago llegó después del cutoff.
  */
 export async function reportPayment(
   orderId: string,
@@ -137,7 +208,7 @@ export async function reportPayment(
   const reported = reportedAt ?? new Date()
 
   if (order.status === ORDER_STATUSES.PAYMENT_REPORTED) {
-    return { ok: true, data: order } // ya reportado (idempotente)
+    return { ok: true, data: order }
   }
   if (order.status !== ORDER_STATUSES.PENDING_PAYMENT) {
     return {
@@ -147,7 +218,6 @@ export async function reportPayment(
     }
   }
 
-  // Recalcula la fecha de entrega incluyendo cuándo se reportó el pago.
   const info = calculateDeliveryDate(
     new Date(order.createdAt),
     order.customer.zone,
@@ -169,23 +239,14 @@ export async function reportPayment(
     updates
   )
   if (!updated) {
-    return { ok: false, error: 'No se pudo actualizar el pedido (¿ya fue reportado?)', status: 409 }
+    return { ok: false, error: 'No se pudo actualizar el pedido', status: 409 }
   }
 
-  // Telegram: notifica al equipo que hay un pago por verificar
   const config = getTelegramConfig()
   if (config.botToken && config.chatId) {
-    const telegramSent = await sendPaymentNotification(updated, config).catch((err) => {
-      console.error('[order-service] ❌ Error enviando notificación Telegram:', err)
-      return false
+    await sendPaymentNotification(updated, config).catch((err) => {
+      console.error('[order-service] Error enviando notificación Telegram:', err)
     })
-    if (!telegramSent) {
-      console.error('[order-service] ⚠️ Notificación Telegram NO enviada para pedido', updated.id)
-    } else {
-      console.log('[order-service] ✅ Notificación Telegram enviada para pedido', updated.id)
-    }
-  } else {
-    console.warn('[order-service] ⚠️ Telegram no configurado — saltando notificación')
   }
 
   return { ok: true, data: updated }
@@ -193,8 +254,9 @@ export async function reportPayment(
 
 /**
  * Confirmación de pago → PAID.
- * Idempotente: si ya está en PAID, retorna sin cambios.
- * Desde Telegram: el botón CONFIRMAR PAGO llama este flujo.
+ * Al confirmarse el pago, se actualiza el saldo de botellas del cliente:
+ *   - bottlesInPossession: resta las botellas devueltas y suma las nuevas botellas compradas.
+ *   - bottlesHistory: suma las botellas compradas. Si usó descuento de fidelidad, descuenta 10 del acumulado.
  */
 export async function confirmPayment(
   orderId: string,
@@ -204,7 +266,7 @@ export async function confirmPayment(
   if (!order) return { ok: false, error: 'Pedido no encontrado', status: 404 }
 
   if (order.status === ORDER_STATUSES.PAID) {
-    return { ok: true, data: order } // ya confirmado (idempotente)
+    return { ok: true, data: order }
   }
   if (order.status !== ORDER_STATUSES.PAYMENT_REPORTED) {
     return {
@@ -217,7 +279,7 @@ export async function confirmPayment(
   const updates: Partial<Order> = {
     status: ORDER_STATUSES.PAID,
     paymentConfirmedAt: new Date().toISOString(),
-    confirmedBy: confirmedBy ?? 'TELEGRAM',
+    confirmedBy: confirmedBy ?? 'ADMIN',
     updatedAt: new Date().toISOString(),
   }
 
@@ -227,28 +289,49 @@ export async function confirmPayment(
     updates
   )
   if (!updated) {
-    // Verificar si ya fue confirmado (race condition-safe)
     const fresh = await getOrder(orderId)
     if (fresh && fresh.status === ORDER_STATUSES.PAID) return { ok: true, data: fresh }
     return { ok: false, error: 'No se pudo confirmar el pago', status: 409 }
   }
 
-  // Telegram: notifica confirmación + genera wa.me para enviar al cliente
+  // Actualizar inventario de botellas del cliente
+  try {
+    const customer = await getCustomerByPhone(order.customer.phone)
+    if (customer) {
+      const prevPossession = customer.bottlesInPossession || 0
+      const prevHistory = customer.bottlesHistory || 0
+
+      // Nuevas botellas en posesión = (actuales - devueltas) + nuevas compradas
+      const newPossession = Math.max(0, prevPossession - (order.bottlesReturned || 0)) + order.totalUnits
+
+      // Historial: si redimió fidelidad, restamos 10 del ciclo, y sumamos las nuevas compradas
+      let newHistory = prevHistory + order.totalUnits
+      if (order.loyaltyDiscount > 0 && prevHistory >= BOTTLES_FOR_FREE) {
+        newHistory = Math.max(0, newHistory - BOTTLES_FOR_FREE)
+      }
+
+      await upsertCustomer({
+        ...customer,
+        bottlesInPossession: newPossession,
+        bottlesHistory: newHistory,
+        updatedAt: new Date().toISOString(),
+      })
+    }
+  } catch (err) {
+    console.error('[order-service] Error actualizando botellas del cliente:', err)
+  }
+
   const config = getTelegramConfig()
   if (config.botToken && config.chatId) {
-    const telegramSent = await sendPaymentConfirmed(updated, config).catch((err) => {
-      console.error('[order-service] ❌ Error enviando confirmación Telegram:', err)
-      return false
+    await sendPaymentConfirmed(updated, config).catch((err) => {
+      console.error('[order-service] Error enviando confirmación Telegram:', err)
     })
-    if (!telegramSent) {
-      console.error('[order-service] ⚠️ Confirmación Telegram NO enviada para pedido', orderId)
-    }
   }
 
   return { ok: true, data: updated }
 }
 
-/** Rechazo de pago → PAYMENT_REJECTED. Idempotente. */
+/** Rechazo de pago → PAYMENT_REJECTED. */
 export async function rejectPayment(orderId: string): Promise<ServiceResult<Order>> {
   const order = await getOrder(orderId)
   if (!order) return { ok: false, error: 'Pedido no encontrado', status: 404 }
@@ -282,7 +365,7 @@ export async function rejectPayment(orderId: string): Promise<ServiceResult<Orde
   const config = getTelegramConfig()
   if (config.botToken && config.chatId) {
     await sendPaymentRejected(updated, config).catch((err) => {
-      console.error('[order-service] ❌ Error enviando rechazo Telegram:', err)
+      console.error('[order-service] Error enviando rechazo Telegram:', err)
     })
   }
 

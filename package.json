@@ -13,13 +13,18 @@
     "@vercel/blob": "^2.8.0",
     "@vercel/kv": "^3.0.0",
     "axios": "^1.20.0",
+    "bcryptjs": "^3.0.3",
     "framer-motion": "^10.18.0",
     "gsap": "^3.15.0",
+    "jsonwebtoken": "^9.0.3",
     "next": "14.2.35",
+    "otplib": "^13.5.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

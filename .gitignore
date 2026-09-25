@@ -29,7 +29,7 @@ yarn-error.log*
 
 .env*.local
 
-# datos de runtime (pedidos JSON — en Render vive en un disco persistente montado en /data)
+# datos de runtime locales (pedidos y clientes JSON)
 /data
 
 # typescript

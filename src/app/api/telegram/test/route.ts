@@ -67,16 +67,29 @@ export async function GET(request: NextRequest) {
   // dominio actual y envía un mensaje de prueba. Úsalo DESPUÉS de
   // desplegar: simplemente abre el enlace en el navegador.
   // Ej: https://TU-DOMINIO.vercel.app/api/telegram/test?configure=1
-  const wantsConfigure = new URL(request.url).searchParams.get('configure') === '1'
+  //
+  // Variante explícita (recomendada para evitar depender de los headers):
+  // GET /api/telegram/test?configure=1&url=https://yak-lac.vercel.app/api/telegram
+  const searchParams = new URL(request.url).searchParams
+  const wantsConfigure = searchParams.get('configure') === '1'
   if (wantsConfigure && config.botToken) {
-    const host = request.headers.get('host') || request.headers.get('x-forwarded-host')
+    // 1) URL explícita por parámetro (gana siempre).
+    const explicitUrl = searchParams.get('url')
+    // 2) Fallback: auto-detectar el host del request.
+    const host = (!explicitUrl && (request.headers.get('host') || request.headers.get('x-forwarded-host'))) || ''
     const proto = process.env.NODE_ENV === 'development' ? 'http' : 'https'
-    if (host) {
-      const webhookUrl = `${proto}://${host}/api/telegram`
+    const webhookUrl = explicitUrl || (host ? `${proto}://${host}/api/telegram` : '')
+
+    if (webhookUrl) {
       const res = await configureWebhook(config.botToken, webhookUrl)
       const diag = await getWebhookDiagnostics(config.botToken)
       return NextResponse.json({ ...res, diagnostics: diag })
     }
+
+    return NextResponse.json({
+      ok: false,
+      error: 'No se pudo detectar la URL. Pasa ?url=https://TU-DOMINIO/api/telegram',
+    })
   }
 
   const diagnostics: Record<string, unknown> = {
@@ -116,7 +129,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/telegram/test — Configura el webhook de Telegram.
- * Body: { "url": "https://tu-app.onrender.com/api/telegram" }
+ * Body: { "url": "https://yak-lac.vercel.app/api/telegram" }
  * O sin body: auto-detecta la URL del request.
  */
 export async function POST(request: NextRequest) {

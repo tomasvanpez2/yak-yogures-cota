@@ -1,4 +1,5 @@
 import { OrderStatus, SugarOption } from './config'
+import { normalizePhone } from './client-types'
 
 export interface OrderItem {
   productId: string
@@ -22,9 +23,13 @@ export interface Order {
   items: OrderItem[]
   customer: CustomerData
   subtotal: number
+  bottlesReturned: number
+  bottleDiscount: number
+  loyaltyDiscount: number
   deliveryCost: number
   total: number
   totalUnits: number
+  isFounderApplied: boolean
   deliveryDate: string
   deliveryDay: string
   cutoffDate?: string
@@ -47,14 +52,13 @@ export function generateOrderId(): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  // Usar timestamp de alta precisión en lugar de random para evitar colisiones
   const time = Date.now().toString(36).toUpperCase()
   return `PED-${year}${month}${day}-${time}`
 }
 
 export function validatePhone(phone: string): boolean {
-  const cleaned = phone.replace(/[\s\-\(\)]/g, '')
-  return /^\d{10}$/.test(cleaned) || /^\+57\d{10}$/.test(cleaned)
+  const cleaned = normalizePhone(phone)
+  return /^\d{10}$/.test(cleaned)
 }
 
 export function validateZone(zone: string): boolean {

@@ -22,8 +22,6 @@ export interface DeliveryRoute {
 }
 
 function productImage(slug: string): string {
-  // Puedes colocar las imágenes reales en public/assets/[slug].jpeg
-  // Si no existe, devolver un placeholder svg con el color del producto.
   return `/assets/${slug}.jpeg`
 }
 
@@ -76,7 +74,7 @@ export const PRODUCTS: Record<string, Product> = {
 export const ZONES: Record<string, Zone> = {
   COTA: { id: 'COTA', name: 'Cota', deliveryCost: 0, routeDay: 'SÁBADO', cutoffHour: 14 },
   CHIA: { id: 'CHIA', name: 'Chía', deliveryCost: 5000, routeDay: 'LUNES', cutoffHour: 14 },
-  CAJICA: { id: 'CAJICA', name: 'Cajicá', deliveryCost: 6000, routeDay: 'MARTES', cutoffHour: 14 },
+  CAJICA: { id: 'CAJICA', name: 'Cajicá', deliveryCost: 7000, routeDay: 'MARTES', cutoffHour: 14 },
   CALLE_80: { id: 'CALLE_80', name: 'Calle 80', deliveryCost: 8000, routeDay: 'MIÉRCOLES', cutoffHour: 14 },
   SUBA: { id: 'SUBA', name: 'Suba', deliveryCost: 8000, routeDay: 'JUEVES', cutoffHour: 14 },
   SUR: { id: 'SUR', name: 'Sur', deliveryCost: 12000, routeDay: 'VIERNES', cutoffHour: 14 },
@@ -105,12 +103,18 @@ export const ORDER_STATUSES = {
 
 export type OrderStatus = typeof ORDER_STATUSES[keyof typeof ORDER_STATUSES]
 
-export const FREE_DELIVERY_THRESHOLD = 3
-
-export function getDeliveryCost(zoneId: string, totalUnits: number): number {
-  if (totalUnits >= FREE_DELIVERY_THRESHOLD) return 0
+/**
+ * Tarifa de entrega según zona y condición del cliente.
+ * El domicilio es $0 ÚNICAMENTE si:
+ *   - El cliente es Fundador (isFounder: true)
+ *   - O la zona es Cota
+ */
+export function getDeliveryCost(zoneId: string, isFounder = false): number {
+  if (isFounder) return 0
   const zone = ZONES[zoneId]
-  return zone ? zone.deliveryCost : 0
+  if (!zone) return 0
+  if (zone.id === 'COTA') return 0
+  return zone.deliveryCost
 }
 
 // ─── Regla de negocio: azúcar (con/sin) ─────────────────────────
@@ -126,7 +130,6 @@ export const PRODUCT_WITHOUT_SUGAR_OPTION = 'GRIEGO'
  * Normaliza la preferencia de azúcar de una línea de producto.
  * - Griego → siempre undefined (no aplica).
  * - Sabores de fruta → 'CON' por defecto; 'SIN' solo si se pidió explícito.
- * Cualquier otro valor se trata como 'CON' (nunca rompe un pedido).
  */
 export function resolveSugar(productId: string, sugar?: string): SugarOption | undefined {
   if (productId === PRODUCT_WITHOUT_SUGAR_OPTION) return undefined

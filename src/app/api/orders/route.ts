@@ -5,10 +5,10 @@ import { listOrders } from '@/lib/store'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { items, customer } = body
+    const { items, customer, bottlesToReturn } = body
 
     // Delegate all validation + price recalculation to order-service
-    const result = await createOrder({ items, customer })
+    const result = await createOrder({ items, customer, bottlesToReturn })
 
     if (!result.ok) {
       return NextResponse.json(
@@ -24,8 +24,12 @@ export async function POST(request: NextRequest) {
         id: order.id,
         total: order.total,
         subtotal: order.subtotal,
+        bottleDiscount: order.bottleDiscount,
+        loyaltyDiscount: order.loyaltyDiscount,
+        bottlesReturned: order.bottlesReturned,
         deliveryCost: order.deliveryCost,
         totalUnits: order.totalUnits,
+        isFounderApplied: order.isFounderApplied,
         deliveryDate: order.deliveryDate,
         deliveryDay: order.deliveryDay,
         status: order.status,

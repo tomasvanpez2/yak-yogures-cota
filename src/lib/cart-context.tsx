@@ -32,7 +32,7 @@ interface CartContextValue {
   clearCart: () => void
   totalUnits: number
   subtotal: number
-  deliveryCostFor: (zoneId: string) => number
+  deliveryCostFor: (zoneId: string, isFounder?: boolean) => number
   isEmpty: boolean
   isCartOpen: boolean
   openCart: () => void
@@ -60,7 +60,7 @@ function saveCart(items: CartItem[]) {
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
   } catch {
-    // localStorage full or unavailable — silently fail
+    // localStorage full or unavailable
   }
 }
 
@@ -138,8 +138,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const deliveryCostFor = useCallback(
-    (zoneId: string) => getDeliveryCost(zoneId, totalUnits),
-    [totalUnits]
+    (zoneId: string, isFounder = false) => getDeliveryCost(zoneId, isFounder),
+    []
   )
 
   const value = useMemo<CartContextValue>(
