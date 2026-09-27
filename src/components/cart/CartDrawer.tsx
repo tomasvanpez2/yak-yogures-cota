@@ -12,6 +12,7 @@ import {
   BOTTLE_DISCOUNT,
   BOTTLES_FOR_FREE,
   normalizePhone,
+  loyaltyProgress,
   type CustomerPublicData,
 } from '@/lib/client-types'
 import {
@@ -367,7 +368,9 @@ export default function CartDrawer() {
   const bottleDiscount = bottlesToReturn * BOTTLE_DISCOUNT
   const hasLoyaltyFreeBottle = useMemo(() => {
     if (!customerData) return false
-    return (customerData.bottlesHistory || 0) >= BOTTLES_FOR_FREE && totalUnits > 0
+    // Usar loyaltyProgress: true SOLO en múltiplos exactos de 10 (10, 20, 30...)
+    // No usar >= 10 porque eso daría true para 11, 12, 13...
+    return loyaltyProgress(customerData.bottlesHistory || 0).hasFreeBottle && totalUnits > 0
   }, [customerData, totalUnits])
 
   const loyaltyDiscount = useMemo(() => {
