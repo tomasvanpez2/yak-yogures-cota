@@ -208,6 +208,45 @@ Gracias por tu pedido.`
   return `https://wa.me/${customerNumber}?text=${encodeURIComponent(message)}`
 }
 
+/**
+ * Genera un enlace de WhatsApp para notificar al cliente que su pago fue rechazado
+ * porque no se encontró el comprobante/transferencia.
+ */
+export function generateWhatsAppRejectLink(order: Order): string {
+  const customerNumber = normalizeWhatsAppNumber(order.customer.phone)
+  const deliveryDate = new Date(order.deliveryDate)
+  const zone = ZONES[order.customer.zone]
+
+  const message = `Hola ${order.customer.name},
+
+No encontramos el pago de tu pedido #${order.id}, por lo que no pudimos confirmarlo.
+
+Productos:
+${order.items
+  .map((item) => {
+    const product = PRODUCTS[item.productId]
+    const sugar = item.sugar ? ` (${sugarLabel(item.sugar)})` : ''
+    return `${item.quantity} x ${product.name}${sugar}`
+  })
+  .join('\n')}
+
+Total: $${order.total.toLocaleString('es-CO')} COP
+
+Entrega programada:
+${order.deliveryDay} ${formatDeliveryDate(deliveryDate)}
+
+Zona:
+${zone.name}
+
+Por favor, verifica si realizaste la transferencia y envíanos el comprobante a este chat para poder procesar tu pedido.
+
+Si ya pagaste, responde con la captura del pago y lo revisamos de inmediato.
+
+Gracias.`
+
+  return `https://wa.me/${customerNumber}?text=${encodeURIComponent(message)}`
+}
+
 export async function sendPaymentConfirmed(order: Order, config: TelegramConfig) {
   const deliveryDate = new Date(order.deliveryDate)
   const zone = ZONES[order.customer.zone]
@@ -239,19 +278,23 @@ Registrado correctamente.
 }
 
 export async function sendPaymentRejected(order: Order, config: TelegramConfig) {
+  const waLink = generateWhatsAppRejectLink(order)
+
   const message = `
 ❌ PAGO RECHAZADO
 
 Pedido #${order.id}
 
-El pago no fue confirmado.
+El pago no fue confirmado (no se encontró comprobante).
 
 El pedido NO entra en producción.
 
 El cliente debe ser contactado.
   `.trim()
 
-  return sendTelegramMessage(config, message)
+  return sendTelegramMessage(config, message, {
+    inline_keyboard: [[{ text: '📲 ENVIAR RECHAZO POR WHATSAPP', url: waLink }]],
+  })
 }
 
 // ---------------------------------------------------------------------------
