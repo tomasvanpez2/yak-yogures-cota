@@ -539,7 +539,8 @@ export default function CartDrawer() {
   }
 
   const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3006539429'
-  const PAYMENT_ACCOUNT = process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT || 'pasa a esta llave Bre-B'
+  // Quitar "@" si viene en la variable de entorno, mostrar solo el número
+  const PAYMENT_ACCOUNT = (process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT || 'pasa a esta llave Bre-B').replace(/^@/, '')
 
   // ── Animated numbers instances ───────────────────────────────────────────
   const subtotalAnim = useAnimatedNumber(subtotal)
