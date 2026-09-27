@@ -5,21 +5,22 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { PRODUCTS } from '@/lib/config'
-import { useReveal, useParallax, useStaggerReveal } from '@/lib/use-gsap'
+import { useReveal, useParallax, useStaggerReveal, useClipReveal } from '@/lib/use-gsap'
+import { Drop, AppleLogo, Recycle, ArrowRight } from '@phosphor-icons/react'
 
 const PILLARS = [
   {
-    icon: '🥛',
+    icon: <Drop width={24} height={24} weight="regular" color="currentColor" aria-hidden="true" />,
     title: 'Leche de la sabana',
     text: 'Leche fresca de la Sabana de Bogotá. Sin leche en polvo, sin grasas vegetales, sin cosas que no se pronuncian.',
   },
   {
-    icon: '🍓',
+    icon: <AppleLogo width={24} height={24} weight="regular" color="currentColor" aria-hidden="true" />,
     title: 'Fruta de verdad',
     text: 'Mora, mango, fresa y feijoa colombianas, cortadas a mano. Nada de saborizantes ni colorantes.',
   },
   {
-    icon: '♻️',
+    icon: <Recycle width={24} height={24} weight="regular" color="currentColor" aria-hidden="true" />,
     title: 'Vidrio que vuelve',
     text: 'Botellas de vidrio retornables: devuélvelas en tu próximo pedido y te descontamos $2.000 por cada una.',
   },
@@ -32,243 +33,223 @@ const STEPS = [
 ]
 
 export default function Home() {
-  const heroParallax = useParallax(0.25)
-  const storyReveal = useReveal({ y: 40, duration: 1 })
-  const pillarsGrid = useStaggerReveal({ stagger: 0.12, y: 30 })
-  const pillarsReveal = useReveal({ y: 40 })
-  const flavorsReveal = useReveal({ y: 40 })
-  const flavorsGrid = useStaggerReveal({ stagger: 0.08, y: 30 })
-  const stepsReveal = useReveal({ y: 30 })
-  const stepsGrid = useStaggerReveal({ stagger: 0.15, y: 20 })
-  const ctaReveal = useReveal({ y: 30 })
+  const heroParallax = useParallax(0.12)
+  const heroReveal = useReveal({ y: 30, duration: 0.8 })
+  const storyReveal = useReveal({ y: 30, duration: 0.7 })
+  const pillarsReveal = useReveal({ y: 20 })
+  const flavorsReveal = useReveal({ y: 20 })
+  const flavorsGrid = useStaggerReveal({ stagger: 0.05, y: 16 })
+  const stepsReveal = useReveal({ y: 20 })
+  const ctaReveal = useReveal({ y: 20 })
+  const ctaClip = useClipReveal({ direction: 'bottom', duration: 1 })
 
   return (
     <main className="min-h-screen">
       <Navbar />
 
-      {/* ─── HERO — full-bleed cinematic ─── */}
-      <section className="relative h-screen flex items-center overflow-hidden">
-        <div ref={heroParallax} className="absolute inset-0 w-full h-[120%] -top-[10%]">
+      {/* ─── HERO — cinematic, product-forward ─── */}
+      <section className="relative min-h-[calc(100dvh-4rem)] flex items-center overflow-hidden">
+        {/* Background image with parallax */}
+        <div ref={heroParallax} className="absolute inset-0 w-full h-[115%] -top-[7%] shadow-subtle">
           <Image
             src="/assets/hero-strawberry.jpg"
-            alt="Yogur artesanal YAK con fresas frescas"
+            alt="Yogur artesanal YAK con fresas frescas sobre mesa de madera"
             fill
-            className="object-cover"
+            className="img-cover"
             sizes="100vw"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-yak-navy/85 via-yak-navy/55 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-yak-navy/90 via-yak-navy/60 to-yak-navy/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-yak-navy/40 via-transparent to-transparent" />
         </div>
 
-        <div className="relative z-10 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto w-full">
-          <div className="max-w-xl">
-            <p className="text-sm font-semibold tracking-[0.25em] uppercase text-white/60 mb-4">
-              Cota · Colombia
-            </p>
-            <h1 className="font-display font-extrabold text-white mb-5 leading-[1.02]"
-                style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}>
-              Natural.<br />
-              Artesanal.<br />
+        <div ref={heroReveal} className="relative z-10 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto w-full pt-10">
+          <div className="max-w-xl md:max-w-2xl lg:max-w-xl">
+            {/* Headline - 2 lines max, distinctive */}
+            <h1 className="heading-display text-display-xl text-white mb-6 text-balance">
+              Natural. Artesanal.<br />
               <span className="text-yak-mango">De tu familia, para la tuya.</span>
             </h1>
-            <p className="text-base md:text-lg text-white/75 mb-8 max-w-md leading-relaxed">
+
+            {/* Subtext - max 20 words */}
+            <p className="body-copy-lg text-white/75 mb-10 max-w-[65ch] text-pretty">
               Yogur artesanal hecho a mano en Cota, con leche fresca y fruta real.
               El que le darías a tu familia, porque es el que le damos a la nuestra.
             </p>
-            <div className="flex flex-col sm:flex-row items-start gap-3">
+
+            {/* CTA Group */}
+            <div className="flex flex-col sm:flex-row items-start gap-3 mb-10">
               <Link
                 href="/productos"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white text-yak-navy font-bold text-sm hover:bg-white/90 transition-colors shadow-lg"
+                role="link"
+                aria-label="Ir a la página de productos para conocer los sabores de yogur"
+                className="btn-primary w-full sm:w-auto justify-center"
               >
                 Conocer sabores
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
               </Link>
-              <span className="text-xs text-white/50 self-center">Desde $19.000 · Botella de 1 litro</span>
+              <Link
+                href="/filosofia"
+                role="link"
+                aria-label="Leer la historia y filosofía de YAK yogur artesanal"
+                className="btn-secondary w-full sm:w-auto justify-center border-white/30 text-white hover:bg-white/10 hover:border-white"
+              >
+                Nuestra historia
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator - respecting reduced motion */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none animate-[bounce_2s_ease-in-out_infinite] motion-reduce:animate-none" aria-hidden="true">
+          <ArrowRight width={24} height={24} weight="regular" color="white" className="text-white/50 rotate-90" aria-hidden="true" />
+        </div>
+      </section>
+
+      {/* ─── NUESTRA HISTORIA — asymmetric split ─── */}
+      <section className="section bg-yak-cream">
+        <div className="container">
+          <div ref={storyReveal} className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Text column - left on desktop */}
+            <div className="lg:order-2 max-w-xl mx-auto lg:mx-0">
+              <h2 className="heading-section text-display-md md:text-display-lg mb-6 text-balance">
+                Buscábamos un yogur de verdad.<br />
+                <span className="text-yak-muted font-normal">No lo encontramos.</span><br />
+                Entonces lo hicimos.
+              </h2>
+              <div className="space-y-5 body-copy max-w-lg">
+                <p>
+                  YAK nació en una cocina de Cota, como una búsqueda familiar: encontrar un yogur
+                  sin las cosas que le sobran a los yogures industriales, azúcar de más,
+                  saborizantes, colorantes, nombres raros en la etiqueta.
+                </p>
+                <p>
+                  No había una alternativa real. Así que empezamos a hacer el nuestro: leche fresca
+                  de la sabana, fruta seleccionada a mano, fermentación lenta y lotes pequeños que
+                  cuidamos uno por uno, como se cuida algo que va a tu mesa.
+                </p>
+              </div>
+              <Link
+                href="/filosofia"
+                role="link"
+                aria-label="Ir a la página de filosofía para conocer más sobre YAK"
+                className="btn-ghost mt-6"
+              >
+                Leer nuestra filosofía
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </Link>
             </div>
 
-            {/* Badges orgánicos */}
-            <div className="flex flex-wrap gap-2 mt-8">
-              {['Lotes pequeños', 'Fruta real', 'Vidrio retornable'].map((badge) => (
-                <span
-                  key={badge}
-                  className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/85 text-xs font-medium backdrop-blur-sm"
-                >
-                  {badge}
-                </span>
-              ))}
+            {/* Image column - right on desktop, full width on mobile */}
+            <div ref={useClipReveal({ direction: 'bottom', duration: 1 })} className="lg:order-1 relative aspect-[4/5] rounded-3xl overflow-hidden shadow-elevated">
+              <Image
+                src="/assets/produccion.jpeg"
+                alt="Producción artesanal de yogur YAK en cocina de Cota, Cundinamarca"
+                fill
+                className="img-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-yak-navy/90 to-transparent p-6 pt-20">
+                <p className="text-white/90 text-caption font-display font-bold tracking-wide">
+                  Cota, Cundinamarca
+                </p>
+                <p className="text-white/60 text-caption mt-1">
+                  Donde cada lote se hace a mano, uno por uno.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── NUESTRA HISTORIA — inmediatamente después del hero ─── */}
-      <section className="py-24 md:py-32 px-6">
-        <div ref={storyReveal} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-yak-muted mb-6">
-              <span className="w-8 h-px bg-yak-mango" />
-              Nuestra historia
-            </span>
-            <h2 className="font-display font-extrabold text-display-lg text-yak-navy mb-6 leading-tight">
-              Buscábamos un yogur de verdad.<br />
-              <span className="text-yak-muted">No lo encontramos.</span><br />
-              Entonces lo hicimos.
-            </h2>
-            <div className="space-y-4 text-base text-yak-muted leading-relaxed">
-              <p>
-                YAK nació en una cocina de Cota, como una búsqueda familiar: encontrar un yogur
-                sin las cosas que le sobran a los yogures industriales — azúcar de más,
-                saborizantes, colorantes, nombres raros en la etiqueta.
-              </p>
-              <p>
-                No había una alternativa real. Así que empezamos a hacer el nuestro: leche fresca
-                de la sabana, fruta seleccionada a mano, fermentación lenta y lotes pequeños que
-                cuidamos uno por uno, como se cuida algo que va a tu mesa.
-              </p>
-            </div>
-            <Link
-              href="/filosofia"
-              className="inline-flex items-center gap-2 mt-8 text-sm font-semibold text-yak-navy hover:text-yak-mango transition-colors"
-            >
-              Leer nuestra filosofía
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* Imagen de producción */}
-          <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-xl">
-            <Image
-              src="/assets/produccion.jpeg"
-              alt="Producción artesanal de yogur YAK en Cota"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-yak-navy/85 to-transparent p-5 pt-16">
-              <p className="text-white/90 text-sm font-display font-bold">
-                Cota, Cundinamarca
-              </p>
-              <p className="text-white/60 text-xs">
-                Donde cada lote se hace a mano, uno por uno.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── PILARES DE PUREZA ─── */}
-      <section className="py-20 px-6 bg-yak-griego/40">
-        <div className="max-w-6xl mx-auto">
-          <div ref={pillarsReveal} className="text-center mb-12">
-            <h2 className="font-display font-extrabold text-display-md text-yak-navy mb-3">
+      {/* ─── PILARES DE PUREZA — card grid with real icons ─── */}
+      <section className="section bg-yak-griego/30">
+        <div className="container">
+          <div ref={pillarsReveal} className="text-center max-w-2xl mx-auto mb-14">
+            <h2 className="heading-section text-display-md mb-3">
               Lo que sí hay dentro
             </h2>
-            <p className="text-yak-muted max-w-lg mx-auto">
+            <p className="body-copy">
               Tres cosas que no negociamos. Lo que ves en la etiqueta es lo que hay en la botella.
             </p>
           </div>
-          <div ref={pillarsGrid} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {PILLARS.map((pillar) => (
-              <div
+              <article
                 key={pillar.title}
-                className="group bg-white rounded-3xl p-7 border border-yak-griego/70 hover:border-yak-navy/25 hover:shadow-lg transition-all"
+                className="surface-card group p-7 md:p-8"
               >
-                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-yak-cream text-2xl mb-4 group-hover:scale-110 transition-transform">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-yak-mango/10 text-yak-mango mb-5 group-hover:scale-105 transition-transform duration-base">
                   {pillar.icon}
-                </span>
-                <h3 className="font-display font-bold text-lg text-yak-navy mb-2">
+                </div>
+                <h3 className="heading-section text-heading-lg mb-3">
                   {pillar.title}
                 </h3>
-                <p className="text-sm text-yak-muted leading-relaxed">
+                <p className="text-body-sm text-yak-muted leading-relaxed">
                   {pillar.text}
                 </p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── FLAVOR PREVIEW ─── */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div ref={flavorsReveal} className="text-center mb-10">
-            <h2 className="font-display font-extrabold text-display-md text-yak-navy mb-2">
+      {/* ─── SABORES — product-forward showcase ─── */}
+      <section className="section bg-yak-cream">
+        <div className="container">
+          <div ref={flavorsReveal} className="max-w-2xl mx-auto mb-12">
+            <h2 className="heading-section text-display-md mb-3 text-center">
               Nuestros sabores
             </h2>
-            <p className="text-yak-muted">5 sabores, todos de 1 litro, en botella de vidrio</p>
+            <p className="body-copy text-center">5 sabores, todos de 1 litro, en botella de vidrio retornable</p>
           </div>
-          <div ref={flavorsGrid} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+
+          <div ref={flavorsGrid} className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
             {Object.values(PRODUCTS).map((product) => (
               <Link
                 key={product.id}
                 href="/productos"
-                className="group relative aspect-square rounded-2xl overflow-hidden bg-white border border-yak-griego/50 hover:border-yak-navy/25 hover:shadow-lg transition-all"
+                role="link"
+                className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-white border border-yak-line shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yak-mango focus-visible:ring-offset-2 active:scale-[0.98] transition duration-140 ease-out-expo will-change-transform [@media(hover:hover)and(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)and(pointer:fine)]:hover:shadow-card"
+                aria-label={`Ver sabor ${product.name}, precio $${product.price.toLocaleString('es-CO')}`}
               >
                 <Image
                   src={product.image}
-                  alt={product.name}
+                  alt={`Botella de ${product.name} de YAK yogur artesanal`}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
+                  className="img-cover group-hover:scale-[1.03] transition-transform duration-[700ms] ease-out-expo"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white text-sm font-display font-bold">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <p className="font-display font-bold text-white text-heading-md mb-1">
                     {product.name.replace('Yogur de ', '').replace('Yogur ', '')}
                   </p>
-                  <p className="text-white/75 text-xs font-medium">
+                  <p className="text-white/80 text-body-sm font-medium">
                     ${product.price.toLocaleString('es-CO')}
                   </p>
                 </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1" style={{ backgroundColor: product.color }} />
               </Link>
             ))}
           </div>
-          <div className="text-center mt-8">
+
+          <div className="text-center mt-10">
             <Link
               href="/productos"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-yak-navy text-yak-navy font-semibold text-sm hover:bg-yak-navy hover:text-white transition-all"
+              role="link"
+              aria-label="Ver todos los sabores de yogur artesanal YAK"
+              className="btn-secondary"
             >
               Ver todos los sabores
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── HOW IT WORKS MINI ─── */}
-      <section className="py-20 px-6 bg-yak-griego/40">
-        <div className="max-w-4xl mx-auto text-center">
-          <div ref={stepsReveal}>
-            <h2 className="font-display font-extrabold text-display-md text-yak-navy mb-10">
-              Así de simple
-            </h2>
-          </div>
-          <div ref={stepsGrid} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {STEPS.map((step) => (
-              <div key={step.num}>
-                <span className="text-xs font-bold text-yak-mango/70 tracking-wider">
-                  {step.num}
-                </span>
-                <h3 className="font-display font-bold text-xl text-yak-ink mt-2 mb-1">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-yak-muted">{step.text}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-10">
-            <Link
-              href="/como-funciona"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-yak-navy hover:text-yak-mango transition-colors"
-            >
-              Más detalles
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
@@ -277,25 +258,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── CTA FINAL ─── */}
-      <section className="py-24 px-6 bg-yak-navy text-white text-center">
-        <div ref={ctaReveal} className="max-w-2xl mx-auto">
-          <h2 className="font-display font-extrabold text-display-md mb-4">
+      {/* ─── CÓMO FUNCIONA — minimal steps ─── */}
+      <section className="section bg-yak-griego/30">
+        <div className="container-narrow">
+          <div ref={stepsReveal} className="text-center mb-14">
+            <h2 className="heading-section text-display-md mb-3">
+              Así de simple
+            </h2>
+            <p className="body-copy max-w-lg mx-auto">
+              Tres pasos. Sin complicaciones. Tu yogur artesanal llega fresco a tu puerta.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {STEPS.map((step) => (
+              <article
+                key={step.num}
+                className="surface-card relative p-7 md:p-8 text-center"
+              >
+                <span className="inline-block text-caption font-bold text-yak-mango/70 tracking-wider mb-4">
+                  {step.num}
+                </span>
+                <h3 className="heading-section text-heading-md mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-body-sm text-yak-muted">{step.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link
+              href="/como-funciona"
+              role="link"
+              aria-label="Ver zonas de entrega, días de ruta y corte de pedidos"
+              className="btn-ghost"
+            >
+              Ver zonas, días de entrega y corte de pedidos
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA FINAL — full bleed with clip reveal ─── */}
+      <section ref={ctaReveal} className="relative py-24 md:py-32 lg:py-40 px-6 bg-yak-navy text-white overflow-hidden">
+        <div ref={ctaClip} className="absolute inset-0 bg-gradient-to-br from-yak-mango/15 via-transparent to-yak-feijoa/10" />
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="heading-display text-display-md md:text-display-lg mb-5 text-balance text-white">
             Pruébalo esta semana
           </h2>
-          <p className="text-white/60 mb-8 max-w-md mx-auto">
+          <p className="body-copy-lg text-white/60 mb-10 max-w-lg mx-auto">
             Elige tus sabores, recíbelos en tu puerta en botellas de vidrio y devuélvelas
             la próxima vez para ahorrar $2.000 por botella.
           </p>
           <Link
             href="/productos"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-yak-mango text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg"
+            role="link"
+            aria-label="Hacer pedido de yogur artesanal YAK"
+            className="btn-primary inline-flex items-center gap-2 px-9 py-4 shadow-elevated"
           >
             Hacer mi pedido
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            <ArrowRight width={18} height={18} weight="regular" color="currentColor" aria-hidden="true" />
           </Link>
         </div>
       </section>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { Customer } from '@/lib/client-types'
 import { BOTTLES_FOR_FREE } from '@/lib/client-types'
 import { ZONES } from '@/lib/config'
 
-// ─── Tipos locales ──────────────────────────────────────────────
 interface Metrics {
   kpis: {
     totalCustomers: number
@@ -74,7 +74,11 @@ export default function AdminPrivatePanelPage() {
   const [savingForm, setSavingForm] = useState(false)
   const [search, setSearch] = useState('')
 
-  // ─── Verificar sesión al cargar ───
+  const reduceMotion = useReducedMotion()
+  const springShort = reduceMotion
+    ? { duration: 0.12, ease: 'linear' as const }
+    : { type: 'spring' as const, bounce: 0, duration: 0.35 }
+
   useEffect(() => {
     fetch('/api/admin/auth')
       .then((r) => r.json())
@@ -82,7 +86,6 @@ export default function AdminPrivatePanelPage() {
       .catch(() => setScreen('login'))
   }, [])
 
-  // ─── Cargar datos del panel ───
   const loadPanelData = useCallback(async () => {
     try {
       const [cRes, mRes] = await Promise.all([
@@ -98,7 +101,6 @@ export default function AdminPrivatePanelPage() {
       setCustomers(cData.customers || [])
       setMetrics(mData)
     } catch {
-      // silencioso
     }
   }, [])
 
@@ -106,7 +108,6 @@ export default function AdminPrivatePanelPage() {
     if (screen === 'panel') loadPanelData()
   }, [screen, loadPanelData])
 
-  // ─── Login 2FA ───
   const handleVerify = async () => {
     setVerifying(true)
     setCodeError('')
@@ -130,7 +131,6 @@ export default function AdminPrivatePanelPage() {
     }
   }
 
-  // ─── Registro / edición de clientes ───
   const handleSaveCustomer = async () => {
     if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) {
       setFormMsg({ ok: false, text: 'Nombre, teléfono y dirección son obligatorios.' })
@@ -188,11 +188,48 @@ export default function AdminPrivatePanelPage() {
     return c.name.toLowerCase().includes(q) || c.phone.includes(q)
   })
 
-  // ─── Pantalla de login 2FA ───
   if (screen === 'loading') {
     return (
-      <main className="min-h-screen bg-yak-navy flex items-center justify-center">
-        <p className="text-white/50 text-sm font-display animate-pulse">Verificando acceso…</p>
+      <main className="min-h-screen bg-yak-cream">
+        <header className="bg-yak-navy text-white px-6 py-5 shadow-lg">
+          <div className="max-w-6xl mx-auto">
+            <div className="skeleton h-3 w-32 rounded-full mb-3" />
+            <div className="skeleton h-7 w-56 rounded-lg" />
+          </div>
+        </header>
+        <div className="max-w-6xl mx-auto px-6 pt-8 space-y-10">
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="surface-card p-5">
+                <div className="skeleton-circle w-9 h-9 mb-3" />
+                <div className="skeleton h-8 w-24 rounded-lg mb-2" />
+                <div className="skeleton-text w-32" />
+              </div>
+            ))}
+          </section>
+          <section className="surface-card p-6">
+            <div className="skeleton h-6 w-64 rounded-lg mb-6" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i}>
+                  <div className="skeleton-text w-24 mb-2" />
+                  <div className="skeleton h-12 w-full rounded-2xl" />
+                </div>
+              ))}
+              <div className="md:col-span-2">
+                <div className="skeleton h-12 w-full rounded-full" />
+              </div>
+            </div>
+          </section>
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[0, 1].map((i) => (
+              <div key={i} className="surface-card p-6">
+                <div className="skeleton h-5 w-48 rounded-lg mb-5" />
+                <div className="skeleton h-44 w-full rounded-2xl" />
+              </div>
+            ))}
+          </section>
+        </div>
       </main>
     )
   }
@@ -200,123 +237,173 @@ export default function AdminPrivatePanelPage() {
   if (screen === 'login') {
     return (
       <main className="min-h-screen bg-yak-navy flex items-center justify-center px-6">
-        <div className="w-full max-w-sm bg-yak-cream rounded-3xl p-8 shadow-2xl">
-          <div className="text-center mb-6">
-            <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-yak-navy text-white text-2xl mb-4">
-              🔐
-            </span>
-            <h1 className="font-display font-extrabold text-2xl text-yak-navy">Acceso privado</h1>
-            <p className="text-xs text-yak-muted mt-1">
-              Panel de Clientes Fundadores · YAK
+        <div className="w-full max-w-sm surface-elevated p-8 md:p-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-yak-mango/15 text-yak-mango mb-5">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h1 className="heading-section text-display-sm text-yak-navy mb-2">Acceso privado</h1>
+            <p className="text-body-sm text-yak-muted max-w-xs mx-auto">
+              Panel de Clientes Fundadores YAK
             </p>
           </div>
-          <label className="block text-xs font-bold text-yak-muted uppercase tracking-wider mb-2">
-            Código de autenticación (2FA)
-          </label>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={(e) => e.key === 'Enter' && code.length === 6 && handleVerify()}
-            placeholder="••••••"
-            className="w-full text-center text-2xl font-mono tracking-[0.5em] py-3 rounded-2xl border-2 border-yak-griego bg-white text-yak-navy focus:outline-none focus:border-yak-navy"
-          />
-          {codeError && <p className="text-xs text-yak-fresa mt-2 text-center font-medium">{codeError}</p>}
-          <button
-            onClick={handleVerify}
-            disabled={verifying || code.length !== 6}
-            className="w-full mt-4 py-3 rounded-full bg-yak-navy text-white font-bold text-sm hover:bg-yak-navy/90 transition-colors disabled:opacity-40"
-          >
-            {verifying ? 'Verificando…' : 'Ingresar'}
-          </button>
-          <p className="text-[11px] text-yak-muted/70 text-center mt-4 leading-relaxed">
-            Compatible con Google Authenticator y Llavero de iCloud.
-          </p>
+
+          <div className="space-y-5">
+            <div>
+              <label className="input-label text-xs">
+                Código de autenticación 2FA
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && code.length === 6 && handleVerify()}
+                placeholder="••••••"
+                className="input-field text-center font-display text-display-sm tracking-[0.4em] py-4"
+                style={{ letterSpacing: '0.4em' }}
+              />
+              <p className="input-hint mt-2 text-center">
+                6 dígitos de Google Authenticator o Llavero iCloud
+              </p>
+            </div>
+
+            {codeError && (
+              <div className="inline-error" role="alert">
+                <svg className="inline-error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <div>
+                  <p className="font-semibold text-yak-fresa">{codeError}</p>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleVerify}
+              disabled={verifying || code.length !== 6}
+              className="btn-primary w-full"
+              data-ui-state={verifying ? 'loading' : 'idle'}
+            >
+              {verifying ? (
+                <>
+                  <span className="spinner-brand" aria-hidden="true" />
+                  Verificando
+                </>
+              ) : (
+                'Ingresar al panel'
+              )}
+            </button>
+          </div>
         </div>
       </main>
     )
   }
 
-  // ─── Panel principal ───
   return (
     <main className="min-h-screen bg-yak-cream pb-20">
-      {/* Header */}
       <header className="bg-yak-navy text-white px-6 py-5 sticky top-0 z-20 shadow-lg">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-white/50 font-semibold">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/50 font-semibold mb-1">
               YAK · Panel privado
             </p>
-            <h1 className="font-display font-extrabold text-xl">Clientes Fundadores</h1>
+            <h1 className="heading-section text-white text-lg md:text-xl">Clientes Fundadores</h1>
           </div>
           <button
             onClick={async () => {
               await fetch('/api/admin/auth', { method: 'DELETE' })
               setScreen('login')
             }}
-            className="text-xs font-semibold px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="btn-ghost text-white/80 hover:text-white hover:bg-white/10 min-h-[44px] px-4"
           >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
             Salir
           </button>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 space-y-10 pt-8">
-        {/* ─── KPIs ─── */}
         {metrics && (
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <section aria-label="Métricas clave" className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Clientes', value: metrics.kpis.totalCustomers, icon: '👥' },
-              { label: 'Fundadores ⭐', value: metrics.kpis.totalFounders, icon: '🏆' },
-              { label: 'Ventas (pagados)', value: `$${metrics.kpis.revenue.toLocaleString('es-CO')}`, icon: '💰' },
-              { label: 'Botellas recuperadas', value: metrics.kpis.bottlesRecovered, icon: '♻️' },
+              { label: 'Clientes', value: metrics.kpis.totalCustomers, icon: '👥', color: 'text-yak-mango' },
+              { label: 'Fundadores ⭐', value: metrics.kpis.totalFounders, icon: '🏆', color: 'text-yak-mango' },
+              { label: 'Ventas pagadas', value: `$${metrics.kpis.revenue.toLocaleString('es-CO')}`, icon: '💰', color: 'text-yak-feijoa' },
+              { label: 'Botellas recuperadas', value: metrics.kpis.bottlesRecovered, icon: '♻️', color: 'text-yak-feijoa' },
             ].map((k) => (
-              <div key={k.label} className="bg-white rounded-2xl p-4 border border-yak-griego shadow-sm">
-                <p className="text-lg">{k.icon}</p>
-                <p className="font-display font-extrabold text-xl text-yak-navy mt-1">{k.value}</p>
-                <p className="text-[11px] text-yak-muted font-semibold uppercase tracking-wide">{k.label}</p>
+              <div
+                key={k.label}
+                className="surface-card p-5 transition-transform duration-180 ease-out-expo hover:pointer-fine:-translate-y-0.5"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl" aria-hidden="true">{k.icon}</span>
+                </div>
+                <p className="font-display font-bold text-price text-yak-navy mb-1 leading-tight">
+                  {k.value}
+                </p>
+                <p className="text-caption text-yak-muted font-semibold uppercase tracking-wide">
+                  {k.label}
+                </p>
               </div>
             ))}
           </section>
         )}
 
-        {/* ─── Registro de Fundadores ─── */}
-        <section className="bg-white rounded-3xl border border-yak-griego shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-yak-griego bg-yak-griego/30">
-            <h2 className="font-display font-bold text-lg text-yak-navy">
-              ⭐ Registrar Cliente Fundador
-            </h2>
-            <p className="text-xs text-yak-muted mt-0.5">
-              Los fundadores nunca pagan domicilio, sin importar la zona.
-            </p>
+        <section aria-label="Registrar cliente fundador" className="surface-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-yak-line bg-yak-griego/30 flex items-start gap-3">
+            <div className="shrink-0 w-10 h-10 rounded-2xl bg-yak-mango/15 text-yak-mango flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h2 className="heading-section text-lg text-yak-navy">
+                Registrar Cliente Fundador
+              </h2>
+              <p className="text-body-sm text-yak-muted mt-0.5">
+                Los fundadores nunca pagan domicilio, sin importar la zona.
+              </p>
+            </div>
           </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">Nombre</label>
+              <label className="input-label">Nombre completo</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm focus:outline-none focus:border-yak-navy"
+                className="input-field"
                 placeholder="Nombre completo"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">WhatsApp (10 dígitos)</label>
+              <label className="input-label">WhatsApp (10 dígitos)</label>
               <input
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm focus:outline-none focus:border-yak-navy"
+                className="input-field"
                 placeholder="3001234567"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">Zona</label>
+              <label className="input-label">Zona de entrega</label>
               <select
                 value={form.zone}
                 onChange={(e) => setForm((f) => ({ ...f, zone: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm bg-white focus:outline-none focus:border-yak-navy"
+                className="select-field"
               >
                 {Object.values(ZONES).map((z) => (
                   <option key={z.id} value={z.id}>{z.name}</option>
@@ -324,55 +411,80 @@ export default function AdminPrivatePanelPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">Dirección</label>
+              <label className="input-label">Dirección</label>
               <input
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm focus:outline-none focus:border-yak-navy"
+                className="input-field"
                 placeholder="Calle / Carrera #"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">Apto / Conjunto (opcional)</label>
+              <label className="input-label">Apto / Conjunto (opcional)</label>
               <input
                 value={form.apartment}
                 onChange={(e) => setForm((f) => ({ ...f, apartment: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm focus:outline-none focus:border-yak-navy"
+                className="input-field"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-yak-muted uppercase tracking-wide mb-1">Instrucciones (opcional)</label>
+              <label className="input-label">Instrucciones (opcional)</label>
               <input
                 value={form.instructions}
                 onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-yak-griego text-sm focus:outline-none focus:border-yak-navy"
+                className="input-field"
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 space-y-3">
               <button
                 onClick={handleSaveCustomer}
                 disabled={savingForm}
-                className="w-full py-3 rounded-full bg-yak-navy text-white font-bold text-sm hover:bg-yak-navy/90 transition-colors disabled:opacity-50"
+                className="btn-primary w-full"
+                data-ui-state={savingForm ? 'loading' : 'idle'}
               >
-                {savingForm ? 'Guardando…' : 'Registrar como Fundador ⭐'}
+                {savingForm ? (
+                  <>
+                    <span className="spinner-brand" aria-hidden="true" />
+                    Guardando registro
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    Registrar como Fundador
+                  </>
+                )}
               </button>
               {formMsg && (
-                <p className={`text-xs mt-2 text-center font-semibold ${formMsg.ok ? 'text-emerald-700' : 'text-yak-fresa'}`}>
-                  {formMsg.text}
-                </p>
+                formMsg.ok ? (
+                  <div className="inline-success" role="status">
+                    <svg className="inline-success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <p className="font-medium">{formMsg.text}</p>
+                  </div>
+                ) : (
+                  <div className="inline-error" role="alert">
+                    <svg className="inline-error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <p className="font-medium">{formMsg.text}</p>
+                  </div>
+                )
               )}
             </div>
           </div>
         </section>
 
-        {/* ─── Gráficas ─── */}
         {metrics && (
-          <section className="space-y-6">
-            {/* Fila 1: Pedidos por semana + Ingresos por semana */}
+          <section aria-label="Visualizaciones de datos" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pedidos por semana (barras) */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">📦 Pedidos por semana</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">📦 Pedidos por semana</h3>
                 <div className="flex items-end gap-2 h-40">
                   {metrics.ordersByWeek.map((w) => {
                     const max = Math.max(1, ...metrics.ordersByWeek.map((x) => x.count))
@@ -390,27 +502,23 @@ export default function AdminPrivatePanelPage() {
                 </div>
               </div>
 
-              {/* Ingresos por semana (línea) */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">💰 Ingresos por semana</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">💰 Ingresos por semana</h3>
                 <RevenueLineChart data={metrics.revenueByWeek} />
               </div>
             </div>
 
-            {/* Fila 2: Unidades por sabor + Ventas por zona */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Unidades por sabor */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">🍓 Unidades por sabor</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">🍓 Unidades por sabor</h3>
                 <FlavorBarChart data={metrics.unitsByFlavor} />
               </div>
 
-              {/* Ventas por zona */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">📍 Ventas por zona</h3>
-                <div className="space-y-2.5">
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">📍 Ventas por zona</h3>
+                <div className="space-y-3">
                   {Object.entries(metrics.revenueByZone).length === 0 && (
-                    <p className="text-xs text-yak-muted">Sin ventas registradas aún.</p>
+                    <p className="text-body-sm text-yak-muted">Sin ventas registradas aún.</p>
                   )}
                   {Object.entries(metrics.revenueByZone)
                     .sort((a, b) => b[1] - a[1])
@@ -418,9 +526,9 @@ export default function AdminPrivatePanelPage() {
                       const max = Math.max(...Object.values(metrics.revenueByZone))
                       return (
                         <div key={zone}>
-                          <div className="flex justify-between text-xs mb-1">
+                          <div className="flex justify-between text-sm mb-1.5">
                             <span className="font-semibold text-yak-ink">{ZONES[zone]?.name || zone}</span>
-                            <span className="font-bold text-yak-navy">${revenue.toLocaleString('es-CO')}</span>
+                            <span className="font-display font-bold text-yak-navy">${revenue.toLocaleString('es-CO')}</span>
                           </div>
                           <div className="h-2.5 rounded-full bg-yak-griego overflow-hidden">
                             <div
@@ -435,133 +543,237 @@ export default function AdminPrivatePanelPage() {
               </div>
             </div>
 
-            {/* Fila 3: Clientes nuevos vs acumulados + Botellas devueltas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Clientes por semana */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">👥 Clientes: nuevos vs acumulados</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">👥 Clientes: nuevos vs acumulados</h3>
                 <CustomersLineChart data={metrics.customersByWeek} />
               </div>
 
-              {/* Botellas devueltas por semana */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">♻️ Botellas devueltas por semana</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">♻️ Botellas devueltas por semana</h3>
                 <BottlesBarChart data={metrics.bottlesReturnedByWeek} />
               </div>
             </div>
 
-            {/* Fila 4: Estados de pedidos (donut) + Top clientes fidelidad */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Estados de pedidos */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">📊 Estados de pedidos</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">📊 Estados de pedidos</h3>
                 <StatusDonutChart data={metrics.ordersByStatus} />
               </div>
 
-              {/* Top clientes fidelidad (tabla visual) */}
-              <div className="bg-white rounded-3xl border border-yak-griego shadow-sm p-6">
-                <h3 className="font-display font-bold text-yak-navy mb-4">🏆 Top Fidelidad 10+1</h3>
+              <div className="surface-card p-6">
+                <h3 className="heading-section text-base text-yak-navy mb-5">🏆 Top Fidelidad 10+1</h3>
                 <TopLoyaltyTable data={metrics.topLoyaltyCustomers} />
               </div>
             </div>
           </section>
         )}
 
-        {/* ─── Tabla de clientes ─── */}
-        <section className="bg-white rounded-3xl border border-yak-griego shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-yak-griego flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="font-display font-bold text-lg text-yak-navy">👥 Todos los clientes</h2>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre o teléfono…"
-              className="px-3 py-2 rounded-xl border border-yak-griego text-xs w-56 focus:outline-none focus:border-yak-navy"
-            />
-          </div>
-          <div className="divide-y divide-yak-griego/60">
-            {filtered.length === 0 && (
-              <p className="px-6 py-8 text-sm text-yak-muted text-center">No hay clientes todavía.</p>
-            )}
-            {filtered.map((c) => (
-              <div key={c.phone} className="px-6 py-4 flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-48">
-                  <p className="font-display font-bold text-sm text-yak-ink">
-                    {c.name} {c.isFounder && <span className="text-yak-mango">⭐</span>}
-                  </p>
-                  <p className="text-xs text-yak-muted font-mono">
-                    {c.phone} · {ZONES[c.zone]?.name || c.zone}
-                  </p>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <div className="w-24 h-1.5 rounded-full bg-yak-griego overflow-hidden">
-                      <div
-                        className="h-full bg-yak-feijoa rounded-full"
-                        style={{ width: `${((c.bottlesHistory || 0) % BOTTLES_FOR_FREE) * 10}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-yak-muted">
-                      {(c.bottlesHistory || 0) % BOTTLES_FOR_FREE}/{BOTTLES_FOR_FREE} → gratis
-                    </span>
-                  </div>
-                </div>
-
-                {/* Botellas en posesión */}
-                <div className="flex items-center gap-1.5 bg-yak-cream rounded-xl px-2 py-1.5 border border-yak-griego">
-                  <span className="text-[10px] text-yak-muted font-bold uppercase">En casa</span>
-                  <button onClick={() => handleAdjustBottles(c, 'bottlesInPossession', -1)} className="w-6 h-6 rounded-full bg-white border border-yak-griego text-xs font-bold hover:border-yak-navy">−</button>
-                  <span className="w-5 text-center text-sm font-bold text-yak-navy">{c.bottlesInPossession || 0}</span>
-                  <button onClick={() => handleAdjustBottles(c, 'bottlesInPossession', 1)} className="w-6 h-6 rounded-full bg-white border border-yak-griego text-xs font-bold hover:border-yak-navy">+</button>
-                </div>
-
-                {/* Historial */}
-                <div className="flex items-center gap-1.5 bg-yak-cream rounded-xl px-2 py-1.5 border border-yak-griego">
-                  <span className="text-[10px] text-yak-muted font-bold uppercase">Histórico</span>
-                  <button onClick={() => handleAdjustBottles(c, 'bottlesHistory', -1)} className="w-6 h-6 rounded-full bg-white border border-yak-griego text-xs font-bold hover:border-yak-navy">−</button>
-                  <span className="w-5 text-center text-sm font-bold text-yak-navy">{c.bottlesHistory || 0}</span>
-                  <button onClick={() => handleAdjustBottles(c, 'bottlesHistory', 1)} className="w-6 h-6 rounded-full bg-white border border-yak-griego text-xs font-bold hover:border-yak-navy">+</button>
-                </div>
-
-                <button
-                  onClick={() => handleToggleFounder(c)}
-                  className={`text-xs font-bold px-3 py-2 rounded-full transition-colors ${
-                    c.isFounder
-                      ? 'bg-yak-mango/15 text-yak-mango border border-yak-mango/30 hover:bg-yak-mango/25'
-                      : 'bg-yak-griego text-yak-muted hover:text-yak-ink border border-yak-griego'
-                  }`}
-                >
-                  {c.isFounder ? '⭐ Fundador' : 'Marcar fundador'}
-                </button>
+        <section aria-label="Tabla de clientes" className="surface-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-yak-line flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-yak-griego/60 flex items-center justify-center text-yak-navy shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
               </div>
-            ))}
+              <h2 className="heading-section text-lg text-yak-navy">Todos los clientes</h2>
+            </div>
+            <div className="relative flex-1 max-w-xs">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-yak-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por nombre o teléfono"
+                className="input-field pl-11"
+                aria-label="Buscar clientes"
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full" role="grid" aria-label="Listado de clientes">
+              <thead className="sr-only">
+                <tr>
+                  <th>Cliente</th>
+                  <th>Botellas en casa</th>
+                  <th>Botellas histórico</th>
+                  <th>Estado fundador</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12">
+                      <p className="text-body-sm text-yak-muted text-center">No hay clientes todavía.</p>
+                    </td>
+                  </tr>
+                )}
+                {filtered.map((c, idx) => (
+                  <tr key={c.phone} className="block border-0">
+                    <td colSpan={4} className="block px-0 py-0 border-0">
+                      {idx > 0 && <hr className="divider mx-6" />}
+                      <div className="px-6 py-5 flex flex-wrap items-center gap-5">
+                        <div className="flex-1 min-w-56">
+                          <p className="font-display font-bold text-body text-yak-ink">
+                            {c.name} {c.isFounder && <span className="text-yak-mango ml-0.5">⭐</span>}
+                          </p>
+                          <p className="text-caption text-yak-muted font-mono mt-0.5">
+                            {c.phone} · {ZONES[c.zone]?.name || c.zone}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="w-28 h-1.5 rounded-full bg-yak-griego overflow-hidden">
+                              <div
+                                className="h-full bg-yak-feijoa rounded-full"
+                                style={{ width: `${((c.bottlesHistory || 0) % BOTTLES_FOR_FREE) * 10}%` }}
+                              />
+                            </div>
+                            <span className="text-caption text-yak-muted">
+                              {(c.bottlesHistory || 0) % BOTTLES_FOR_FREE}/{BOTTLES_FOR_FREE} para gratis
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-start gap-1.5">
+                          <span className="text-caption text-yak-muted font-bold uppercase tracking-wide pl-1">En casa</span>
+                          <div className="quantity-stepper">
+                            <button
+                              onClick={() => handleAdjustBottles(c, 'bottlesInPossession', -1)}
+                              className="quantity-btn"
+                              aria-label="Disminuir botellas en casa"
+                              disabled={(c.bottlesInPossession || 0) <= 0}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                            <span className="quantity-value" aria-live="polite">{c.bottlesInPossession || 0}</span>
+                            <button
+                              onClick={() => handleAdjustBottles(c, 'bottlesInPossession', 1)}
+                              className="quantity-btn"
+                              aria-label="Aumentar botellas en casa"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-start gap-1.5">
+                          <span className="text-caption text-yak-muted font-bold uppercase tracking-wide pl-1">Histórico</span>
+                          <div className="quantity-stepper">
+                            <button
+                              onClick={() => handleAdjustBottles(c, 'bottlesHistory', -1)}
+                              className="quantity-btn"
+                              aria-label="Disminuir botellas histórico"
+                              disabled={(c.bottlesHistory || 0) <= 0}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                            <span className="quantity-value" aria-live="polite">{c.bottlesHistory || 0}</span>
+                            <button
+                              onClick={() => handleAdjustBottles(c, 'bottlesHistory', 1)}
+                              className="quantity-btn"
+                              aria-label="Aumentar botellas histórico"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <FounderToggleSwitch
+                          isFounder={!!c.isFounder}
+                          onToggle={() => handleToggleFounder(c)}
+                          spring={springShort}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
-        {/* ─── Últimos pedidos ─── */}
         {metrics && metrics.recentOrders.length > 0 && (
-          <section className="bg-white rounded-3xl border border-yak-griego shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-yak-griego">
-              <h2 className="font-display font-bold text-lg text-yak-navy">🧾 Últimos pedidos</h2>
+          <section aria-label="Últimos pedidos">
+            <div className="flex items-center gap-3 mb-5 px-1">
+              <div className="w-10 h-10 rounded-2xl bg-yak-griego/60 flex items-center justify-center text-yak-navy shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
+              <h2 className="heading-section text-lg text-yak-navy">Últimos pedidos</h2>
             </div>
-            <div className="divide-y divide-yak-griego/60">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {metrics.recentOrders.map((o) => (
-                <div key={o.id} className="px-6 py-3.5 flex items-center justify-between gap-3 flex-wrap">
-                  <div>
-                    <p className="text-sm font-bold text-yak-ink font-mono">{o.id}</p>
-                    <p className="text-xs text-yak-muted">
-                      {o.customerName} · {ZONES[o.zone]?.name || o.zone} · {o.totalUnits} L
-                      {o.bottlesReturned > 0 && ` · ♻️ ${o.bottlesReturned} devueltas`}
-                    </p>
+                <article key={o.id} className="surface-elevated p-5">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <p className="font-display font-bold text-body-sm text-yak-navy font-mono">{o.id}</p>
+                      <p className="text-caption text-yak-muted mt-0.5">
+                        {o.customerName}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-display font-bold text-price text-yak-navy leading-none">
+                        ${o.total.toLocaleString('es-CO')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-yak-navy font-display">${o.total.toLocaleString('es-CO')}</p>
-                    <span className={`text-[10px] font-bold uppercase tracking-wide ${
-                      o.status === 'PENDING_PAYMENT' ? 'text-amber-600' :
-                      o.status === 'PAYMENT_REPORTED' ? 'text-blue-600' :
-                      o.status === 'PAID' || o.status === 'DELIVERED' ? 'text-emerald-600' : 'text-yak-muted'
-                    }`}>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-caption text-yak-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {ZONES[o.zone]?.name || o.zone}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M10 2v7.31" />
+                        <path d="M14 9.3V1.99" />
+                        <path d="M8.5 2h7" />
+                        <path d="M19 9v3.5a4 4 0 0 1-2.1 3.56l-1.9 1.1A2 2 0 0 0 14 18.34V21" />
+                        <path d="M10 21v-2.66c0-.53-.21-1.04-.58-1.41L7 15.5A5.5 5.5 0 0 1 5 11.5V9" />
+                      </svg>
+                      {o.totalUnits} L
+                    </span>
+                    {o.bottlesReturned > 0 && (
+                      <span className="inline-flex items-center gap-1.5 text-yak-feijoa font-semibold">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
+                        </svg>
+                        {o.bottlesReturned} devueltas
+                      </span>
+                    )}
+                    <span
+                      className={`ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-[10px] font-bold uppercase tracking-wide ${
+                        o.status === 'PENDING_PAYMENT' ? 'bg-amber-500/10 text-amber-700' :
+                        o.status === 'PAYMENT_REPORTED' ? 'bg-blue-500/10 text-blue-700' :
+                        o.status === 'PAID' || o.status === 'DELIVERED' ? 'bg-yak-feijoa/12 text-yak-feijoa' : 'bg-yak-griego text-yak-muted'
+                      }`}
+                    >
                       {o.status.replace(/_/g, ' ')}
                     </span>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </section>
@@ -571,7 +783,39 @@ export default function AdminPrivatePanelPage() {
   )
 }
 
-/* ─── Componentes de Gráficas ─── */
+function FounderToggleSwitch({
+  isFounder,
+  onToggle,
+  spring,
+}: {
+  isFounder: boolean
+  onToggle: () => void
+  spring: { type?: 'spring'; bounce?: number; duration: number } | { duration: number; ease: 'linear' }
+}) {
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      <span className="text-caption text-yak-muted font-bold uppercase tracking-wide pl-1">Fundador</span>
+      <button
+        onClick={onToggle}
+        role="switch"
+        aria-checked={isFounder}
+        aria-label={isFounder ? 'Quitar estado de fundador' : 'Marcar como fundador'}
+        className="relative inline-flex items-center shrink-0 w-14 h-8 rounded-full border border-yak-line transition-colors duration-150 ease-out-expo focus:outline-none focus:ring-2 focus:ring-yak-mango/40 focus:ring-offset-2 focus:ring-offset-yak-cream"
+        style={{ backgroundColor: isFounder ? '#E8A838' : '#E5E0DA' }}
+      >
+        <motion.span
+          initial={false}
+          animate={{ x: isFounder ? 26 : 3 }}
+          transition={spring}
+          className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-[10px]"
+          aria-hidden="true"
+        >
+          {isFounder ? '⭐' : ''}
+        </motion.span>
+      </button>
+    </div>
+  )
+}
 
 function RevenueLineChart({ data }: { data: { week: string; revenue: number }[] }) {
   const maxRevenue = Math.max(1, ...data.map((d) => d.revenue))
@@ -581,15 +825,13 @@ function RevenueLineChart({ data }: { data: { week: string; revenue: number }[] 
   }))
 
   return (
-    <div className="relative h-48">
-      {/* Grid lines */}
+    <div className="relative h-48" role="img" aria-label="Gráfico de línea de ingresos por semana">
       <div className="absolute inset-0">
         {[0, 25, 50, 75, 100].map((p) => (
-          <div key={p} className="absolute left-0 right-0 border-t border-yak-griego/30" style={{ top: `${p}%` }} />
+          <div key={p} className="absolute left-0 right-0 border-t border-yak-line/40" style={{ top: `${p}%` }} />
         ))}
       </div>
-      {/* Line */}
-      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path
           d={points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')}
           stroke="#E8A838"
@@ -602,11 +844,10 @@ function RevenueLineChart({ data }: { data: { week: string; revenue: number }[] 
           <circle key={i} cx={p.x} cy={p.y} r="3" fill="#E8A838" stroke="white" strokeWidth="1.5" />
         ))}
       </svg>
-      {/* Labels */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-yak-muted pt-2">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-caption text-yak-muted pt-2">
         {data.map((d) => <span key={d.week}>{d.week}</span>)}
       </div>
-      <div className="absolute right-0 top-0 bottom-0 w-16 flex flex-col justify-between text-[9px] text-yak-muted pr-1">
+      <div className="absolute right-0 top-0 bottom-0 w-20 flex flex-col justify-between text-caption text-yak-muted pr-1">
         {['', '$' + (maxRevenue / 2).toLocaleString('es-CO'), '$' + maxRevenue.toLocaleString('es-CO')].map((l, i) => (
           <span key={i} className="text-right">{l}</span>
         ))}
@@ -620,20 +861,20 @@ function FlavorBarChart({ data }: { data: { flavor: string; units: number }[] })
   const colors = ['#B8739E', '#E89BB5', '#D4A574', '#B8D4A0', '#F5F5F5']
 
   return (
-    <div className="space-y-2.5 h-48 overflow-y-auto pr-1">
+    <div className="space-y-3 h-48 overflow-y-auto pr-1">
       {data.length === 0 ? (
-        <p className="text-xs text-yak-muted text-center py-8">Sin datos de sabores aún.</p>
+        <p className="text-body-sm text-yak-muted text-center py-8">Sin datos de sabores aún.</p>
       ) : (
         data.map((d, i) => (
-          <div key={d.flavor} className="flex items-center gap-2">
-            <span className="w-20 text-xs font-medium text-yak-ink truncate">{d.flavor}</span>
-            <div className="flex-1 h-5 rounded-full bg-yak-griego overflow-hidden relative">
+          <div key={d.flavor} className="flex items-center gap-3">
+            <span className="w-24 text-body-sm font-medium text-yak-ink truncate">{d.flavor}</span>
+            <div className="flex-1 h-6 rounded-full bg-yak-griego/60 overflow-hidden relative">
               <div
                 className="h-full rounded-full transition-all"
                 style={{ width: `${(d.units / maxUnits) * 100}%`, backgroundColor: colors[i % colors.length] }}
               />
             </div>
-            <span className="w-16 text-right text-xs font-bold text-yak-navy">{d.units}</span>
+            <span className="w-14 text-right text-body-sm font-display font-bold text-yak-navy">{d.units}</span>
           </div>
         ))
       )}
@@ -653,15 +894,13 @@ function CustomersLineChart({ data }: { data: { week: string; newCustomers: numb
   }))
 
   return (
-    <div className="relative h-48">
-      {/* Grid lines */}
+    <div className="relative h-48" role="img" aria-label="Gráfico de clientes nuevos vs acumulados">
       <div className="absolute inset-0">
         {[0, 25, 50, 75, 100].map((p) => (
-          <div key={p} className="absolute left-0 right-0 border-t border-yak-griego/30" style={{ top: `${p}%` }} />
+          <div key={p} className="absolute left-0 right-0 border-t border-yak-line/40" style={{ top: `${p}%` }} />
         ))}
       </div>
-      {/* Total line */}
-      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path
           d={pointsTotal.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')}
           stroke="#1C1C1E"
@@ -675,8 +914,7 @@ function CustomersLineChart({ data }: { data: { week: string; newCustomers: numb
           <circle key={i} cx={p.x} cy={p.y} r="3" fill="#1C1C1E" stroke="white" strokeWidth="1.5" opacity="0.6" />
         ))}
       </svg>
-      {/* New line */}
-      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path
           d={pointsNew.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')}
           stroke="#E8A838"
@@ -689,13 +927,11 @@ function CustomersLineChart({ data }: { data: { week: string; newCustomers: numb
           <circle key={i} cx={p.x} cy={p.y} r="3" fill="#E8A838" stroke="white" strokeWidth="1.5" />
         ))}
       </svg>
-      {/* Legend */}
-      <div className="absolute top-2 right-2 flex gap-3 text-[9px]">
-        <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-yak-navy opacity-60" /> Acumulados</span>
-        <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-yak-mango" /> Nuevos</span>
+      <div className="absolute top-2 right-2 flex gap-4 text-caption">
+        <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 bg-yak-navy opacity-60 rounded-full" /> Acumulados</span>
+        <span className="flex items-center gap-1.5"><span className="w-5 h-0.5 bg-yak-mango rounded-full" /> Nuevos</span>
       </div>
-      {/* Labels */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-yak-muted pt-2">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-caption text-yak-muted pt-2">
         {data.map((d) => <span key={d.week}>{d.week}</span>)}
       </div>
     </div>
@@ -706,15 +942,15 @@ function BottlesBarChart({ data }: { data: { week: string; bottles: number }[] }
   const maxBottles = Math.max(1, ...data.map((d) => d.bottles))
 
   return (
-    <div className="flex items-end gap-2 h-40">
+    <div className="flex items-end gap-2 h-40" role="img" aria-label="Gráfico de barras de botellas devueltas por semana">
       {data.map((d) => (
         <div key={d.week} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[10px] font-bold text-yak-feijoa">{d.bottles || ''}</span>
+          <span className="text-caption font-bold text-yak-feijoa">{d.bottles || ''}</span>
           <div
             className="w-full rounded-t-lg bg-yak-feijoa/80 transition-all"
             style={{ height: `${(d.bottles / maxBottles) * 100}%`, minHeight: d.bottles > 0 ? 6 : 2 }}
           />
-          <span className="text-[9px] text-yak-muted">{d.week}</span>
+          <span className="text-caption text-yak-muted">{d.week}</span>
         </div>
       ))}
     </div>
@@ -770,23 +1006,23 @@ function StatusDonutChart({ data }: { data: Record<string, number> }) {
   })
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5" role="img" aria-label="Gráfico de dona de estados de pedidos">
       <div className="relative w-40 h-40">
-        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90" aria-hidden="true">
           <circle cx="50" cy="50" r="35" fill="none" stroke="#E8E8E8" strokeWidth="8" />
           {paths}
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="font-display font-extrabold text-lg text-yak-navy">{total}</p>
-            <p className="text-[10px] text-yak-muted">pedidos</p>
+            <p className="font-display font-extrabold text-display-sm text-yak-navy">{total}</p>
+            <p className="text-caption text-yak-muted">pedidos</p>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 text-[10px] w-full max-w-xs">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-caption w-full max-w-xs">
         {segments.map((s) => (
-          <div key={s.status} className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+          <div key={s.status} className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
             <span className="text-yak-ink truncate">{s.label} ({s.count})</span>
           </div>
         ))}
@@ -797,22 +1033,22 @@ function StatusDonutChart({ data }: { data: Record<string, number> }) {
 
 function TopLoyaltyTable({ data }: { data: Metrics['topLoyaltyCustomers'] }) {
   return (
-    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+    <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
       {data.length === 0 ? (
-        <p className="text-xs text-yak-muted text-center py-8">Sin datos de fidelidad aún.</p>
+        <p className="text-body-sm text-yak-muted text-center py-8">Sin datos de fidelidad aún.</p>
       ) : (
         data.map((c) => (
-          <div key={c.phone} className="flex items-center gap-2 p-2 rounded-xl bg-yak-cream/50 border border-yak-griego/50">
-            <div className="w-6 h-6 rounded-full bg-yak-navy/10 flex items-center justify-center text-[10px] font-bold text-yak-navy">
+          <div key={c.phone} className="flex items-center gap-3 p-3 rounded-2xl bg-yak-griego/40 border border-yak-line/50">
+            <div className="w-8 h-8 rounded-full bg-yak-navy/10 flex items-center justify-center text-[11px] font-bold text-yak-navy shrink-0">
               {c.isFounder ? '⭐' : String(c.progressPercent / 10 || 0)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-yak-ink truncate">{c.name} {c.isFounder && <span className="text-yak-mango">⭐</span>}</p>
-              <p className="text-[10px] text-yak-muted font-mono">{c.phone}</p>
+              <p className="text-body-sm font-bold text-yak-ink truncate">{c.name} {c.isFounder && <span className="text-yak-mango ml-0.5">⭐</span>}</p>
+              <p className="text-caption text-yak-muted font-mono">{c.phone}</p>
             </div>
-            <div className="text-right">
-              <p className="text-xs font-bold text-yak-feijoa">{c.bottlesHistory} botellas</p>
-              <div className="w-20 h-1.5 rounded-full bg-yak-griego overflow-hidden">
+            <div className="text-right shrink-0">
+              <p className="text-body-sm font-bold text-yak-feijoa">{c.bottlesHistory} bot.</p>
+              <div className="w-24 h-1.5 rounded-full bg-yak-griego overflow-hidden mt-1 ml-auto">
                 <div className="h-full bg-yak-feijoa" style={{ width: `${c.progressPercent}%` }} />
               </div>
             </div>

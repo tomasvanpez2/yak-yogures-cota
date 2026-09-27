@@ -5,151 +5,172 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { PRODUCTS } from '@/lib/config'
-import { useReveal, useSequentialReveal, useStaggerReveal } from '@/lib/use-gsap'
+import { useReveal, useSequentialReveal, useStaggerReveal, useParallax } from '@/lib/use-gsap'
+import { ArrowRight, Recycle, Gift } from '@phosphor-icons/react'
 
 export default function FilosofiaPage() {
-  const heroReveal = useReveal({ y: 30, duration: 1.2 })
-  const processReveal = useSequentialReveal({ y: 60, stagger: 0.15 })
-  const ingredientReveal = useReveal({ y: 40 })
-  const flavorGrid = useStaggerReveal({ stagger: 0.08, y: 20 })
-  const sustainReveal = useReveal({ y: 40 })
+  const heroReveal = useReveal({ y: 40, duration: 1 })
+  const heroParallax = useParallax(0.1)
+  const processReveal = useSequentialReveal({ y: 40, stagger: 0.12 })
+  const ingredientReveal = useReveal({ y: 30 })
+  const flavorGrid = useStaggerReveal({ stagger: 0.06, y: 20 })
+  const sustainReveal = useReveal({ y: 30 })
   const ctaReveal = useReveal({ y: 30 })
 
   return (
     <main className="min-h-screen">
       <Navbar />
 
-      {/* ─── HERO — produccion.jpeg con overlay ─── */}
-      <section className="relative h-[80vh] min-h-[500px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/assets/produccion.jpeg"
-            alt="Producción artesanal de yogur YAK en Cota"
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-yak-navy/50" />
-        </div>
-        <div ref={heroReveal} className="relative z-10 text-center px-6 text-white">
-          <p className="text-sm font-semibold tracking-[0.2em] uppercase text-white/60 mb-4">
-            Nuestra historia
-          </p>
-          <h1 className="font-display font-extrabold text-display-xl mb-4 leading-[1.05]">
-            Producido en Cota.<br />
-            Entregado fresco.
-          </h1>
-          <p className="text-lg text-white/70 max-w-lg mx-auto">
-            Yogur artesanal hecho a mano, lote por lote.
-          </p>
-        </div>
-      </section>
-
-      {/* ─── STORY BLOCKS — sequential scroll reveal ─── */}
-      <section className="py-24 md:py-32 px-6">
-        <div ref={processReveal} className="max-w-3xl mx-auto text-center space-y-32">
-          {/* Block 1 — Lotes pequeños */}
-          <div>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-yak-muted mb-6">
-              <span className="w-6 h-px bg-yak-mango" />
-              El proceso
-              <span className="w-6 h-px bg-yak-mango" />
-            </span>
-            <h2 className="font-display font-extrabold text-display-lg text-yak-navy mb-6 leading-tight">
-              Lotes pequeños,<br />
-              producción cuidadosa.
-            </h2>
-            <p className="text-lg text-yak-muted leading-relaxed max-w-xl mx-auto">
-              No producimos en masa. Cada lote se hace con atención —
-              controlamos la temperatura, el tiempo de fermentación y la proporción
-              de fruta. Así cada botella sabe como debe saber.
-            </p>
-          </div>
-
-          {/* Block 2 — De dónde viene la leche */}
-          <div>
-            <h2 className="font-display font-extrabold text-display-lg text-yak-navy mb-6 leading-tight">
-              De dónde viene<br />
-              la leche.
-            </h2>
-            <p className="text-lg text-yak-muted leading-relaxed max-w-xl mx-auto">
-              Leche fresca de la sabana de Bogotá. Sin conservantes, sin colorantes,
-              sin saborizantes artificiales. Lo que ves en la etiqueta es lo que hay
-              dentro: leche, fruta y cultivos.
-            </p>
-          </div>
-
-          {/* Block 3 — Sin atajos */}
-          <div>
-            <h2 className="font-display font-extrabold text-display-lg text-yak-navy mb-6 leading-tight">
-              Sin atajos.
-            </h2>
-            <p className="text-xl text-yak-muted leading-relaxed max-w-xl mx-auto italic">
-              &ldquo;Cada botella contiene lo que debería: leche, fruta y cultivos.&rdquo;
-            </p>
+      {/* ─── HERO — production photo with depth ─── */}
+      <section className="section bg-yak-cream">
+        <div className="container">
+          <div ref={heroParallax} className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-card mb-12 md:mb-16">
+            <Image
+              src="/assets/produccion.jpeg"
+              alt="Producción artesanal de yogur YAK en cocina de Cota, vista general del proceso"
+              fill
+              className="img-cover"
+              sizes="100vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-yak-navy/75 via-yak-navy/45 to-yak-navy/15" />
+            <div className="absolute inset-0 bg-gradient-to-t from-yak-navy/30 via-transparent to-transparent" />
+            <div ref={heroReveal} className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 text-white">
+              <h1 className="heading-display text-display-lg md:text-display-xl mb-5 text-balance">
+                Yogur artesanal.<br />
+                Lote por lote.
+              </h1>
+              <p className="body-copy-lg text-white/75 max-w-lg mx-auto">
+                Entregado fresco.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── INGREDIENTES REALES ─── */}
-      <section className="py-16 px-6 bg-yak-griego/30">
-        <div className="max-w-5xl mx-auto">
-          <div ref={ingredientReveal} className="text-center mb-10">
-            <h2 className="font-display font-extrabold text-display-md text-yak-navy mb-2">
+      {/* ─── STORY BLOCKS — sequential narrative ─── */}
+      <section className="section bg-yak-cream pt-0">
+        <div className="container-narrow">
+          <div ref={processReveal} className="space-y-24 md:space-y-32">
+            {/* Block 1 — Lotes pequeños */}
+            <article className="text-center max-w-3xl mx-auto">
+              <h2 className="heading-section text-display-md md:text-display-lg mb-5 text-balance">
+                Lotes pequeños,<br />
+                producción cuidadosa.
+              </h2>
+              <p className="body-copy-lg max-w-xl mx-auto">
+                No producimos en masa. Cada lote se hace con atención,
+                controlamos la temperatura, el tiempo de fermentación y la proporción
+                de fruta. Así cada botella sabe como debe saber.
+              </p>
+            </article>
+
+            <hr className="divider w-32 mx-auto" />
+
+            {/* Block 2 — De dónde viene la leche */}
+            <article className="text-center max-w-3xl mx-auto">
+              <h2 className="heading-section text-display-md md:text-display-lg mb-5 text-balance">
+                De dónde viene<br />
+                la leche.
+              </h2>
+              <p className="body-copy-lg max-w-xl mx-auto">
+                Leche fresca de la sabana de Bogotá. Sin conservantes, sin colorantes,
+                sin saborizantes artificiales. Lo que ves en la etiqueta es lo que hay
+                dentro: leche, fruta y cultivos.
+              </p>
+            </article>
+
+            <hr className="divider w-32 mx-auto" />
+
+            {/* Block 3 — Sin atajos - quote style */}
+            <article className="text-center max-w-2xl mx-auto">
+              <blockquote>
+                <p className="body-copy-lg md:text-display-sm text-yak-muted leading-relaxed italic">
+                  &ldquo;Cada botella contiene lo que debería: leche, fruta y cultivos.&rdquo;
+                </p>
+              </blockquote>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── INGREDIENTES REALES — visual grid ─── */}
+      <section className="section bg-yak-griego/30">
+        <div className="container">
+          <div ref={ingredientReveal} className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="heading-section text-display-md mb-3">
               Ingredientes reales. Nada que esconder.
             </h2>
+            <p className="body-copy">
+              Cinco sabores, una misma promesa: fruta de verdad, leche de la sabana, cero atajos.
+            </p>
           </div>
-          <div ref={flavorGrid} className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div ref={flavorGrid} className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
             {Object.values(PRODUCTS).map((product) => (
-              <div
+              <figure
                 key={product.id}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-white"
+                className="surface-card group relative aspect-[4/5] rounded-2xl overflow-hidden"
               >
                 <Image
                   src={product.image}
-                  alt={product.name}
+                  alt={`Botella de ${product.name}, yogur artesanal YAK`}
                   fill
-                  className="object-cover"
+                  className="img-cover group-hover:scale-[1.02] transition-transform duration-[700ms] ease-out-expo"
                   sizes="(max-width: 640px) 50vw, 20vw"
                 />
-              </div>
+                <figcaption className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-white text-caption font-medium">
+                  {product.name.replace('Yogur de ', '').replace('Yogur ', '')}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── SOSTENIBILIDAD ─── */}
-      <section className="py-20 px-6">
-        <div ref={sustainReveal} className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display font-extrabold text-display-md text-yak-navy mb-6">
-            Botellas de vidrio.
-          </h2>
-          <p className="text-lg text-yak-muted leading-relaxed max-w-xl mx-auto">
-            Cada yogur viene en una botella de vidrio que puedes reutilizar docenas de veces.
-            No es un eslogan — es así como lo hacemos porque tiene sentido.
-          </p>
+      {/* ─── SOSTENIBILIDAD — focused message ─── */}
+      <section className="section bg-yak-cream">
+        <div className="container-narrow">
+          <div ref={sustainReveal} className="max-w-3xl mx-auto text-center">
+            <h2 className="heading-section text-display-md md:text-display-lg mb-6 text-balance">
+              Botellas de vidrio.<br />
+              <span className="text-yak-mango">No es marketing.</span>
+            </h2>
+            <p className="body-copy-lg max-w-xl mx-auto mb-8">
+              Cada yogur viene en una botella de vidrio que puedes reutilizar docenas de veces.
+              No es un eslogan, es así como lo hacemos porque tiene sentido.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <span className="badge-success">
+                <Recycle width={14} height={14} weight="regular" color="currentColor" aria-hidden="true" />
+                Retorno $2.000 c/u
+              </span>
+              <span className="badge-primary">
+                <Gift width={14} height={14} weight="regular" color="currentColor" aria-hidden="true" />
+                Fidelidad 10+1
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ─── CTA ─── */}
-      <section className="py-16 px-6 text-center bg-yak-navy text-white">
-        <div ref={ctaReveal} className="max-w-2xl mx-auto">
-          <h2 className="font-display font-bold text-display-md mb-4">
+      <section className="section bg-yak-navy text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yak-mango/10 via-transparent to-yak-feijoa/10" />
+        <div ref={ctaReveal} className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="heading-display text-display-md md:text-display-lg mb-4 text-balance text-white">
             Conoce nuestros sabores
           </h2>
-          <p className="text-white/60 mb-8">
+          <p className="body-copy-lg text-white/60 mb-8 max-w-lg mx-auto">
             5 sabores, todos de 1 litro, hechos con ingredientes reales.
           </p>
           <Link
             href="/productos"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-yak-mango text-white font-bold text-sm hover:brightness-110 transition-all"
+            role="link"
+            aria-label="Ver todos los productos y sabores de yogur artesanal YAK"
+            className="btn-primary inline-flex items-center gap-2 px-9 py-4 shadow-elevated"
           >
             Ver productos
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            <ArrowRight width={18} height={18} weight="regular" color="currentColor" aria-hidden="true" />
           </Link>
         </div>
       </section>
