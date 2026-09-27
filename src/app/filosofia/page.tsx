@@ -37,8 +37,8 @@ export default function FilosofiaPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-yak-navy/30 via-transparent to-transparent" />
             <div ref={heroReveal} className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 text-white">
               <h1 className="heading-display text-display-lg md:text-display-xl mb-5 text-balance">
-                Yogur artesanal.<br />
-                Lote por lote.
+                <span className="text-white">Yogur artesanal.</span><br />
+                <span className="text-yak-mango">Lote por lote.</span>
               </h1>
               <p className="body-copy-lg text-white/75 max-w-lg mx-auto">
                 Entregado fresco.

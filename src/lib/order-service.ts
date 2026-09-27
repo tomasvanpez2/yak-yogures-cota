@@ -32,6 +32,7 @@ import {
   BOTTLES_FOR_FREE,
   normalizePhone,
   maxReturnableBottles,
+  loyaltyProgress,
   type Customer,
 } from './client-types'
 
@@ -130,9 +131,11 @@ export async function createOrder(
   const bottleDiscount = actualBottlesReturned * BOTTLE_DISCOUNT
 
   // 4. Programa de Fidelidad (10 + 1):
-  // Cada 10 botellas acumuladas en el historial otorga 1 yogur gratis.
+  // Solo se aplica si el cliente HA GANADO un yogur gratis (progreso en ciclo = 0 y historial > 0).
+  // Usamos loyaltyProgress para no aplicar el descuento cuando el historial es 11, 12, etc.
   let loyaltyDiscount = 0
-  if (bottlesHistory >= BOTTLES_FOR_FREE && totalUnits > 0) {
+  const progress = loyaltyProgress(bottlesHistory)
+  if (progress.hasFreeBottle && totalUnits > 0) {
     // Se descuenta el producto más económico del pedido (ej. $19.000 fruta o $25.000 si solo lleva griego)
     const cheapestPrice = Math.min(...orderItems.map((i) => i.price))
     loyaltyDiscount = cheapestPrice
