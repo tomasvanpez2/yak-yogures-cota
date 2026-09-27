@@ -1088,7 +1088,7 @@ export default function CartDrawer() {
                           Transferencia Directa
                         </p>
                         <p className="text-xs text-yak-ink leading-relaxed">
-                          Realiza la transferencia de <strong className="price-display">${total.toLocaleString('es-CO')}</strong> a la cuenta autorizada:
+                          Realiza la transferencia de <strong className="price-display">${orderResult?.total.toLocaleString('es-CO') ?? total.toLocaleString('es-CO')}</strong> a la cuenta autorizada:
                         </p>
                         <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-yak-griego">
                           <code className="flex-1 text-xs font-mono font-bold text-yak-navy break-all">
