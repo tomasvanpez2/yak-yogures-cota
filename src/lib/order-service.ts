@@ -307,9 +307,11 @@ export async function confirmPayment(
       // Nuevas botellas en posesión = (actuales - devueltas) + nuevas compradas
       const newPossession = Math.max(0, prevPossession - (order.bottlesReturned || 0)) + order.totalUnits
 
-      // Historial: si redimió fidelidad, restamos 10 del ciclo, y sumamos las nuevas compradas
+      // Historial: si redimió fidelidad (loyaltyDiscount > 0), restamos 10 del ciclo
+      // Usamos order.loyaltyDiscount (calculado en createOrder con lógica correcta)
+      // NO usamos prevHistory >= BOTTLES_FOR_FREE porque eso daría true para 11, 12, 13...
       let newHistory = prevHistory + order.totalUnits
-      if (order.loyaltyDiscount > 0 && prevHistory >= BOTTLES_FOR_FREE) {
+      if (order.loyaltyDiscount > 0) {
         newHistory = Math.max(0, newHistory - BOTTLES_FOR_FREE)
       }
 

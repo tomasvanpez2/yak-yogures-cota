@@ -37,7 +37,7 @@ const CUTOFF_DAYS: Record<string, string> = {
   SUR: 'Miércoles',
 }
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3006539429'
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3013109200'
 
 export default function ComoFuncionaPage() {
   const headerReveal = useReveal({ y: 30, duration: 0.8 })

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { WhatsappLogo } from '@phosphor-icons/react'
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3006539429'
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3013109200'
 
 export default function Footer() {
   return (

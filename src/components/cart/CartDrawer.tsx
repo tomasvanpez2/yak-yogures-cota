@@ -538,7 +538,7 @@ export default function CartDrawer() {
     }
   }
 
-  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3006539429'
+  const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3013109200'
   // Quitar "@" si viene en la variable de entorno, mostrar solo el número
   const PAYMENT_ACCOUNT = (process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT || 'pasa a esta llave Bre-B').replace(/^@/, '')
 

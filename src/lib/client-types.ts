@@ -4,7 +4,7 @@
 // SMS): el cliente se identifica con su celular y sus datos se autocompletan.
 
 export interface Customer {
-  phone: string // ID principal, 10 dígitos normalizados (ej: '3006539429')
+  phone: string // ID principal, 10 dígitos normalizados (ej: '3013109200')
   name: string
   address: string
   zone: string // ID de zona (ZONES en config.ts)
@@ -48,7 +48,7 @@ export function bottleReturnDiscount(bottlesReturned: number): number {
 
 /**
  * Progreso del programa 10+1: cuántas botellas faltan para el próximo
- * yogur gratis. Si ya hay al menos 10 acumuladas, hasFreeBottle es true.
+ * yogur gratis. hasFreeBottle es true SOLO en múltiplos exactos de 10 (10, 20, 30...).
  */
 export function loyaltyProgress(bottlesHistory: number): {
   hasFreeBottle: boolean
@@ -56,9 +56,10 @@ export function loyaltyProgress(bottlesHistory: number): {
   progressInCycle: number // 0..9 dentro del ciclo actual
 } {
   const progressInCycle = bottlesHistory % BOTTLES_FOR_FREE
+  const hasFreeBottle = bottlesHistory > 0 && progressInCycle === 0
   return {
-    hasFreeBottle: Math.floor(bottlesHistory / BOTTLES_FOR_FREE) > Math.floor((bottlesHistory - 1) / BOTTLES_FOR_FREE) && progressInCycle === 0 && bottlesHistory > 0,
-    bottlesToNextFree: BOTTLES_FOR_FREE - progressInCycle,
+    hasFreeBottle,
+    bottlesToNextFree: hasFreeBottle ? BOTTLES_FOR_FREE : BOTTLES_FOR_FREE - progressInCycle,
     progressInCycle,
   }
 }
