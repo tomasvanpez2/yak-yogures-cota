@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, useSpring, useTransform, useReducedMotion, AnimatePresence, animate } from 'framer-motion'
@@ -29,8 +29,6 @@ import {
 
 const SLIDE_OPEN = { duration: 0.3, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }
 const SLIDE_CLOSE = { duration: 0.25, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }
-
-type SpringConfig = typeof SLIDE_OPEN | typeof SLIDE_CLOSE | { duration: number; ease: 'linear' }
 const SCRIM_TRANSITION = { duration: 0.2, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }
 const REDUCED_TRANSITION = { duration: 0.12, ease: 'linear' as const }
 

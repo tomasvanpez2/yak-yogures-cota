@@ -106,6 +106,7 @@ export function useParallax(speed = 0.15) {
  */
 export function useStaggerReveal(options?: { stagger?: number; y?: number; duration?: number }) {
   const ref = useRef<HTMLDivElement>(null)
+  const opts = options ?? {}
 
   useEffect(() => {
     const el = ref.current
@@ -120,12 +121,12 @@ export function useStaggerReveal(options?: { stagger?: number; y?: number; durat
     const ctx = gsap.context(() => {
       gsap.fromTo(
         el.children,
-        { opacity: 0, y: options?.y ?? 20 },
+        { opacity: 0, y: opts.y ?? 20 },
         {
           opacity: 1,
           y: 0,
-          duration: options?.duration ?? 0.6,
-          stagger: options?.stagger ?? 0.06,
+          duration: opts.duration ?? 0.6,
+          stagger: opts.stagger ?? 0.06,
           ease: EASE_OUT_EXPO,
           scrollTrigger: {
             trigger: el,
@@ -137,7 +138,7 @@ export function useStaggerReveal(options?: { stagger?: number; y?: number; durat
     })
 
     return () => ctx.revert()
-  }, [])
+  }, [opts.y, opts.duration, opts.stagger])
 
   return ref
 }
@@ -149,6 +150,7 @@ export function useStaggerReveal(options?: { stagger?: number; y?: number; durat
  */
 export function useSequentialReveal(options?: { y?: number; stagger?: number; duration?: number }) {
   const ref = useRef<HTMLDivElement>(null)
+  const opts = options ?? {}
 
   useEffect(() => {
     const el = ref.current
@@ -164,12 +166,12 @@ export function useSequentialReveal(options?: { y?: number; stagger?: number; du
       Array.from(el.children).forEach((child, i) => {
         gsap.fromTo(
           child,
-          { opacity: 0, y: options?.y ?? 40 },
+          { opacity: 0, y: opts.y ?? 40 },
           {
             opacity: 1,
             y: 0,
-            duration: options?.duration ?? 0.8,
-            delay: i * (options?.stagger ?? 0.12),
+            duration: opts.duration ?? 0.8,
+            delay: i * (opts.stagger ?? 0.12),
             ease: EASE_OUT_EXPO,
             scrollTrigger: {
               trigger: child,
@@ -182,7 +184,7 @@ export function useSequentialReveal(options?: { y?: number; stagger?: number; du
     })
 
     return () => ctx.revert()
-  }, [])
+  }, [opts.y, opts.stagger, opts.duration])
 
   return ref
 }
@@ -194,13 +196,14 @@ export function useSequentialReveal(options?: { y?: number; stagger?: number; du
 export function useMagnetic(options?: { strength?: number; radius?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const animationRef = useRef<gsap.core.Tween | null>(null)
+  const opts = options ?? {}
 
   useEffect(() => {
     const el = ref.current
     if (!el || prefersReducedMotion()) return
 
-    const strength = options?.strength ?? 0.15
-    const radius = options?.radius ?? 100
+    const strength = opts.strength ?? 0.15
+    const radius = opts.radius ?? 100
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect()
@@ -242,7 +245,7 @@ export function useMagnetic(options?: { strength?: number; radius?: number }) {
       el.removeEventListener('mouseleave', handleMouseLeave)
       if (animationRef.current) animationRef.current.kill()
     }
-  }, [])
+  }, [opts.strength, opts.radius])
 
   return ref
 }
@@ -277,7 +280,7 @@ export function usePressScale<T extends HTMLElement = HTMLDivElement>(scale = 0.
       el.removeEventListener('pointerleave', handlePointerUp)
       el.removeEventListener('pointercancel', handlePointerUp)
     }
-  }, [])
+  }, [scale])
 
   return ref
 }
@@ -288,6 +291,7 @@ export function usePressScale<T extends HTMLElement = HTMLDivElement>(scale = 0.
  */
 export function useClipReveal(options?: { direction?: 'bottom' | 'top' | 'left' | 'right'; duration?: number }) {
   const ref = useRef<HTMLDivElement>(null)
+  const opts = options ?? {}
 
   useEffect(() => {
     const el = ref.current
@@ -297,7 +301,7 @@ export function useClipReveal(options?: { direction?: 'bottom' | 'top' | 'left' 
       return
     }
 
-    const direction = options?.direction ?? 'bottom'
+    const direction = opts.direction ?? 'bottom'
     const startClip = direction === 'bottom' ? 'inset(0 0 100% 0)'
       : direction === 'top' ? 'inset(100% 0 0 0)'
       : direction === 'left' ? 'inset(0 100% 0 0)'
@@ -309,7 +313,7 @@ export function useClipReveal(options?: { direction?: 'bottom' | 'top' | 'left' 
         { clipPath: startClip },
         {
           clipPath: 'inset(0 0 0 0)',
-          duration: options?.duration ?? 1,
+          duration: opts.duration ?? 1,
           ease: EASE_OUT_EXPO,
           scrollTrigger: {
             trigger: el,
@@ -321,7 +325,7 @@ export function useClipReveal(options?: { direction?: 'bottom' | 'top' | 'left' 
     })
 
     return () => ctx.revert()
-  }, [])
+  }, [opts.direction, opts.duration])
 
   return ref
 }
@@ -332,6 +336,7 @@ export function useClipReveal(options?: { direction?: 'bottom' | 'top' | 'left' 
  */
 export function useTextLineReveal(options?: { stagger?: number; duration?: number; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
+  const opts = options ?? {}
 
   useEffect(() => {
     const el = ref.current
@@ -357,9 +362,9 @@ export function useTextLineReveal(options?: { stagger?: number; duration?: numbe
         {
           y: 0,
           opacity: 1,
-          duration: options?.duration ?? 0.8,
-          stagger: options?.stagger ?? 0.08,
-          delay: options?.delay ?? 0,
+          duration: opts.duration ?? 0.8,
+          stagger: opts.stagger ?? 0.08,
+          delay: opts.delay ?? 0,
           ease: EASE_OUT_EXPO,
           scrollTrigger: {
             trigger: el,
@@ -371,7 +376,7 @@ export function useTextLineReveal(options?: { stagger?: number; duration?: numbe
     })
 
     return () => ctx.revert()
-  }, [])
+  }, [opts.duration, opts.stagger, opts.delay])
 
   return ref
 }
