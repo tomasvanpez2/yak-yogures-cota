@@ -531,11 +531,11 @@ export default function CartDrawer() {
       })
       setPaymentReported(true)
       clearCart()
-      // Cerrar el drawer después de limpiar el carrito
-      closeCart()
+      // NO cerrar el drawer aquí - dejar que el usuario vea la confirmación con botón de WhatsApp
     } catch {
       // Still show success
-      closeCart()
+      setPaymentReported(true)
+      clearCart()
     } finally {
       setPaymentReporting(false)
     }

@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import CartDrawer from "@/components/cart/CartDrawer";
+import WhatsAppFloatButton from "@/components/ui/WhatsAppFloatButton";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -86,6 +87,7 @@ export default function RootLayout({
             {children}
           </main>
           <CartDrawer />
+          <WhatsAppFloatButton />
         </CartProvider>
       </body>
     </html>
