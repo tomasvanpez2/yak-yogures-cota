@@ -130,7 +130,13 @@ export default function ComoFuncionaPage() {
             </p>
           </div>
           <div ref={zonesGrid} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {Object.values(ZONES).map((zone) => {
+            {[...Object.values(ZONES)]
+              .sort((a, b) => {
+                const dayA = DELIVERY_ROUTES.find((r) => r.zoneId === a.id)?.dayIndex ?? 99
+                const dayB = DELIVERY_ROUTES.find((r) => r.zoneId === b.id)?.dayIndex ?? 99
+                return dayA - dayB
+              })
+              .map((zone) => {
               const route = DELIVERY_ROUTES.find((r) => r.zoneId === zone.id)
               const isFree = zone.deliveryCost === 0
               const isCota = zone.id === 'COTA'
