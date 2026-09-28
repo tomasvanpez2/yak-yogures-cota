@@ -102,18 +102,24 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className="material-nav"
+        className="material-nav sticky top-0 z-50"
         role="navigation"
         aria-label="Navegación principal"
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
           {/* Wordmark */}
           <Link
             href="/"
-            className="font-display font-extrabold text-2xl md:text-3xl text-yak-navy tracking-tight hover:opacity-80 transition-opacity duration-fast active:scale-[0.97]"
+            className="flex items-center hover:opacity-80 transition-opacity duration-fast active:scale-[0.97]"
             aria-label="YAK Yogurt - Inicio"
           >
-            yak
+            <img
+              src="/assets/logo.png"
+              alt="YAK Yogurt"
+              className="h-10 w-auto md:h-11"
+              loading="eager"
+              decoding="async"
+            />
           </Link>
 
           {/* Desktop links */}
@@ -215,10 +221,16 @@ export default function Navbar() {
               <div className="px-6 py-4 border-b border-yak-line">
                 <Link
                   href="/"
-                  className="font-display font-extrabold text-2xl text-yak-navy tracking-tight"
+                  className="flex items-center"
                   onClick={closeMobileMenu}
                 >
-                  yak
+                  <img
+                    src="/assets/logo.png"
+                    alt="YAK Yogurt"
+                    className="h-9 w-auto"
+                    loading="eager"
+                    decoding="async"
+                  />
                 </Link>
               </div>
               <nav className="px-6 py-6 space-y-1" aria-label="Navegación principal móvil">

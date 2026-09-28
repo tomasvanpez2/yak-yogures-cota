@@ -24,6 +24,7 @@ const FLAVOR_ACCENT: Record<string, string> = {
   MORA: 'bg-yak-mora/10',
   MANGO: 'bg-yak-mango/10',
   FEIJOA: 'bg-yak-feijoa/10',
+  FIDELIDAD: 'bg-yak-navy',
 }
 
 const IMAGE_WIDTHS: Record<string, number> = {
@@ -67,6 +68,8 @@ export default function ProductosPage() {
               <ProductCard key={product.id} product={product} />
             ))}
 
+            <LoyaltyCard />
+
             <article className="col-span-1 md:col-span-2 lg:col-span-3 material-surface rounded-3xl overflow-hidden">
               <div className="relative p-8 md:p-12 lg:p-14 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="max-w-xl text-center md:text-left">
@@ -94,8 +97,8 @@ export default function ProductosPage() {
                   <p className="text-body text-yak-muted/90 mb-5 max-w-md mx-auto md:mx-0">
                     Descuento de <strong className="text-yak-navy">$2.000</strong> por cada botella de vidrio devuelta en tu siguiente pedido.
                   </p>
-                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-pill bg-yak-griego/60 text-caption font-medium text-yak-muted border border-yak-line/60">
-                    Sostenible + Fidelidad 10+1
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-pill bg-yak-feijoa/10 text-caption font-medium text-yak-feijoa border border-yak-feijoa/20">
+                    Economía circular
                   </span>
                 </div>
                 <div className="flex flex-col items-center gap-4">
@@ -139,6 +142,65 @@ export default function ProductosPage() {
 
       <Footer />
     </main>
+  )
+}
+
+function LoyaltyCard() {
+  return (
+    <article className="group flex flex-col rounded-3xl overflow-hidden bg-yak-navy border border-yak-navy transition-all duration-180 ease-out-expo hover:shadow-[0_8px_24px_-4px_rgb(27_42_58_/_0.3)] hover:pointer-fine:-translate-y-1">
+      <div className="relative aspect-[4/3] overflow-hidden bg-yak-navy">
+        <div className="absolute inset-0 bg-gradient-to-br from-yak-navy to-[#0F1A26] opacity-90" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <svg
+            width="72"
+            height="72"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="text-white/90"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20" />
+      </div>
+
+      <div className="flex-1 flex flex-col p-6 md:p-8 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-white/15 text-white/90 text-caption font-semibold mb-4 border border-white/20">
+            Programa de Fidelidad
+          </span>
+          <h3 className="font-display font-bold text-display-md mb-3 text-white leading-tight">
+            Tu 10+1 en YAK
+          </h3>
+          <p className="text-body text-white/70 mb-6 max-w-sm mx-auto leading-relaxed">
+            Cada <strong className="text-white">10 yogures</strong> que pidas, el <strong className="text-white">11º es gratis</strong>.
+            Sin cuotas, sin vencimiento, solo por ser parte de la manada.
+          </p>
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <div className="flex items-center justify-center gap-1.5 text-white/80 text-caption font-medium mb-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            Se acumula automáticamente en cada pedido
+          </div>
+          <button className="btn-secondary w-full py-3 text-sm">
+            Ver mi progreso
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </article>
   )
 }
 
