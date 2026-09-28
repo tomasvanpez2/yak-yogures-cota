@@ -11,6 +11,7 @@ import {
   getDeliveryCost,
   ORDER_STATUSES,
   resolveSugar,
+  validateZoneMinLiters,
   type OrderStatus,
 } from './config'
 import { calculateDeliveryDate } from './delivery-engine'
@@ -121,6 +122,13 @@ export async function createOrder(
       ...(sugar ? { sugar } : {}),
     }
   })
+
+  // 2b. Mínimo de litros por zona (Sur de Bogotá: mínimo 2 litros).
+  // Cada unidad equivale a 1 litro.
+  const minCheck = validateZoneMinLiters(input.customer.zone, totalUnits)
+  if (!minCheck.valid) {
+    return { ok: false, error: minCheck.message ?? 'No cumple el pedido mínimo de la zona', status: 400 }
+  }
 
   // 3. Descuento de retorno de botellas:
   // Solo se pueden devolver botellas que ya tiene en casa (primer pedido = 0),

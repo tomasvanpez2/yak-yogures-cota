@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, useSpring, useTransform, useReducedMotion, AnimatePresence, animate } from 'framer-motion'
 import { useCart, lineKey } from '@/lib/cart-context'
-import { PRODUCTS, ZONES, sugarLabel, getDeliveryCost } from '@/lib/config'
+import { PRODUCTS, ZONES, sugarLabel, getDeliveryCost, validateZoneMinLiters } from '@/lib/config'
 import { calculateDeliveryDate, formatDeliveryDate } from '@/lib/delivery-engine'
 import { validatePhone } from '@/lib/order'
 import {
@@ -385,6 +385,9 @@ export default function CartDrawer() {
   const deliveryCost = formData.zone ? getDeliveryCost(formData.zone, isFounder) : 0
   const isFreeDelivery = isFounder || formData.zone === 'COTA'
   const total = Math.max(0, subtotal - bottleDiscount - loyaltyDiscount + deliveryCost)
+  const minLitersCheck = formData.zone
+    ? validateZoneMinLiters(formData.zone, totalUnits)
+    : { valid: true as const }
 
   const deliveryInfo = formData.zone
     ? calculateDeliveryDate(new Date(), formData.zone)
@@ -456,6 +459,10 @@ export default function CartDrawer() {
     else if (!validatePhone(formData.phone)) newErrors.phone = 'Número inválido (10 dígitos)'
     if (!formData.zone) newErrors.zone = 'Selecciona una zona'
     if (!formData.address.trim()) newErrors.address = 'Ingresa tu dirección'
+    if (formData.zone && !validateZoneMinLiters(formData.zone, totalUnits).valid) {
+      const check = validateZoneMinLiters(formData.zone, totalUnits)
+      newErrors.zone = check.message ?? 'No cumple el pedido mínimo de la zona'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -865,7 +872,8 @@ export default function CartDrawer() {
                         <option value="">Selecciona tu municipio / sector</option>
                         {Object.values(ZONES).map((z) => (
                           <option key={z.id} value={z.id}>
-                            {z.name} —{' '}
+                            {z.name}
+                            {z.minLiters ? ` (mín. ${z.minLiters} L)` : ''} —{' '}
                             {isFounder || z.deliveryCost === 0
                               ? 'Gratis'
                               : `$${z.deliveryCost.toLocaleString('es-CO')}`}
@@ -873,6 +881,11 @@ export default function CartDrawer() {
                         ))}
                       </select>
                       {errors.zone && <p id="zone-error" className="input-error" role="alert">{errors.zone}</p>}
+                      {!errors.zone && formData.zone === 'SUR' && !minLitersCheck.valid && (
+                        <p className="mt-1 text-xs font-semibold text-amber-800" role="alert">
+                          El pedido mínimo para Sur de Bogotá es de 2 litros (llevas {totalUnits}). Agrega {2 - totalUnits} más para continuar.
+                        </p>
+                      )}
                     </div>
 
                     {/* Delivery info */}

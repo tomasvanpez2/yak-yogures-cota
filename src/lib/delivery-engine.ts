@@ -14,7 +14,7 @@ const DAY_NAMES = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNE
 
 // Cada ruta tiene un día de corte exactamente 2 días calendario antes de la entrega.
 const CUTOFF_DAY_OFFSET = 2
-// La hora de corte es configurable por zona (ZONES[id].cutoffHour), default 14:00.
+// La hora de corte es configurable por zona (ZONES[id].cutoffHour), default 18:00.
 // El cliente debe reportar el pago antes de las 11:59 PM del mismo día de corte.
 const PAYMENT_DEADLINE_HOUR = 23
 const PAYMENT_DEADLINE_MINUTE = 59
@@ -43,7 +43,7 @@ function getNextDayOfWeek(date: Date, targetDay: number): Date {
  *
  * La fecha depende del momento en que el pedido fue CREADO y de cuándo se
  * REPORTÓ el pago. Para conservar la ruta cercana deben cumplirse ambas:
- *   1. Pedido creado antes de las 2:00 PM del día de corte.
+ *   1. Pedido creado antes de las 6:00 PM del día de corte.
  *   2. Pago reportado antes de las 11:59 PM del mismo día de corte.
  * Si alguna falla, el pedido pasa a la siguiente semana de esa misma ruta.
  *
@@ -62,7 +62,7 @@ export function calculateDeliveryDate(
   if (!route) throw new Error(`No hay ruta configurada para la zona: ${zoneId}`)
 
   const deliveryDayIndex = route.dayIndex
-  const cutoffHour = zone.cutoffHour ?? 14
+  const cutoffHour = zone.cutoffHour ?? 18
   const cutoffDayIndex = (deliveryDayIndex - CUTOFF_DAY_OFFSET + 7) % 7
 
   // Siguiente fecha de entrega de esta ruta a partir de la creación del pedido.
@@ -73,7 +73,7 @@ export function calculateDeliveryDate(
   cutoffDate.setDate(cutoffDate.getDate() - CUTOFF_DAY_OFFSET)
   cutoffDate.setHours(cutoffHour, 0, 0, 0)
 
-  // Condición 1: el pedido se creó antes de las 2:00 PM (estrictamente antes).
+  // Condición 1: el pedido se creó antes de las 6:00 PM (estrictamente antes).
   const orderWithinCutoff = orderCreatedAt.getTime() < cutoffDate.getTime()
 
   // Condición 2: el pago se reportó antes de las 11:59 PM del día de corte.

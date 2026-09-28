@@ -13,6 +13,8 @@ export interface Zone {
   deliveryCost: number
   routeDay: string
   cutoffHour: number
+  /** Cantidad mínima en litros para poder pedir en esta zona. undefined = sin mínimo. */
+  minLiters?: number
 }
 
 export interface DeliveryRoute {
@@ -72,21 +74,21 @@ export const PRODUCTS: Record<string, Product> = {
 }
 
 export const ZONES: Record<string, Zone> = {
-  COTA: { id: 'COTA', name: 'Cota', deliveryCost: 0, routeDay: 'SÁBADO', cutoffHour: 14 },
-  CHIA: { id: 'CHIA', name: 'Chía', deliveryCost: 5000, routeDay: 'LUNES', cutoffHour: 14 },
-  CAJICA: { id: 'CAJICA', name: 'Cajicá', deliveryCost: 7000, routeDay: 'MARTES', cutoffHour: 14 },
-  CALLE_80: { id: 'CALLE_80', name: 'Calle 80', deliveryCost: 8000, routeDay: 'MIÉRCOLES', cutoffHour: 14 },
-  SUBA: { id: 'SUBA', name: 'Suba', deliveryCost: 8000, routeDay: 'JUEVES', cutoffHour: 14 },
-  SUR: { id: 'SUR', name: 'Sur', deliveryCost: 12000, routeDay: 'VIERNES', cutoffHour: 14 },
+  COTA: { id: 'COTA', name: 'Cota', deliveryCost: 0, routeDay: 'VIERNES', cutoffHour: 18 },
+  CHIA: { id: 'CHIA', name: 'Chía', deliveryCost: 6000, routeDay: 'MIÉRCOLES', cutoffHour: 18 },
+  CAJICA: { id: 'CAJICA', name: 'Cajicá', deliveryCost: 7000, routeDay: 'MIÉRCOLES', cutoffHour: 18 },
+  CALLE_80: { id: 'CALLE_80', name: 'Calle 80', deliveryCost: 7000, routeDay: 'SÁBADO', cutoffHour: 18 },
+  SUBA: { id: 'SUBA', name: 'Suba', deliveryCost: 6000, routeDay: 'JUEVES', cutoffHour: 18 },
+  SUR: { id: 'SUR', name: 'Sur de Bogotá', deliveryCost: 9000, routeDay: 'MARTES', cutoffHour: 18, minLiters: 2 },
 }
 
 export const DELIVERY_ROUTES: DeliveryRoute[] = [
-  { day: 'LUNES', zoneId: 'CHIA', dayIndex: 1 },
-  { day: 'MARTES', zoneId: 'CAJICA', dayIndex: 2 },
-  { day: 'MIÉRCOLES', zoneId: 'CALLE_80', dayIndex: 3 },
+  { day: 'MARTES', zoneId: 'SUR', dayIndex: 2 },
+  { day: 'MIÉRCOLES', zoneId: 'CHIA', dayIndex: 3 },
+  { day: 'MIÉRCOLES', zoneId: 'CAJICA', dayIndex: 3 },
   { day: 'JUEVES', zoneId: 'SUBA', dayIndex: 4 },
-  { day: 'VIERNES', zoneId: 'SUR', dayIndex: 5 },
-  { day: 'SÁBADO', zoneId: 'COTA', dayIndex: 6 },
+  { day: 'VIERNES', zoneId: 'COTA', dayIndex: 5 },
+  { day: 'SÁBADO', zoneId: 'CALLE_80', dayIndex: 6 },
 ]
 
 export const ORDER_STATUSES = {
@@ -115,6 +117,22 @@ export function getDeliveryCost(zoneId: string, isFounder = false): number {
   if (!zone) return 0
   if (zone.id === 'COTA') return 0
   return zone.deliveryCost
+}
+
+/**
+ * Valida si un pedido cumple con el mínimo de litros requerido por la zona.
+ * Retorna { valid: boolean, message?: string }
+ */
+export function validateZoneMinLiters(zoneId: string, totalLiters: number): { valid: boolean; message?: string } {
+  const zone = ZONES[zoneId]
+  if (!zone || !zone.minLiters) return { valid: true }
+  if (totalLiters < zone.minLiters) {
+    return {
+      valid: false,
+      message: `El pedido mínimo para ${zone.name} es de ${zone.minLiters} litros.`
+    }
+  }
+  return { valid: true }
 }
 
 // ─── Regla de negocio: azúcar (con/sin) ─────────────────────────

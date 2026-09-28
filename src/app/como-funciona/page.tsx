@@ -29,12 +29,12 @@ const STEPS = [
 
 // Map zone IDs to cutoff days (2 days before delivery)
 const CUTOFF_DAYS: Record<string, string> = {
-  COTA: 'Jueves',
-  CHIA: 'Sábado',
-  CAJICA: 'Domingo',
-  CALLE_80: 'Lunes',
+  COTA: 'Miércoles',
+  CHIA: 'Lunes',
+  CAJICA: 'Lunes',
+  CALLE_80: 'Jueves',
   SUBA: 'Martes',
-  SUR: 'Miércoles',
+  SUR: 'Domingo',
 }
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '3013109200'
@@ -107,10 +107,10 @@ export default function ComoFuncionaPage() {
               </div>
               <div>
                 <p className="heading-section text-heading-sm">
-                  Ejemplo: Chía (Lunes)
+                  Ejemplo: Chía (Miércoles)
                 </p>
                 <p className="text-body-sm text-yak-muted mt-1">
-                  Corte: <strong className="text-yak-navy">Sábado 2:00 PM</strong> - Entrega: <strong className="text-yak-navy">Lunes</strong>
+                  Corte: <strong className="text-yak-navy">Lunes 6:00 PM</strong> - Entrega: <strong className="text-yak-navy">Miércoles</strong>
                 </p>
               </div>
             </div>
@@ -158,9 +158,17 @@ export default function ComoFuncionaPage() {
                     <div className="flex justify-between">
                       <dt className="text-yak-muted">Corte de pedidos</dt>
                       <dd className="text-yak-navy font-medium">
-                        {CUTOFF_DAYS[zone.id] || ' - '} 2:00 PM
+                        {CUTOFF_DAYS[zone.id] || ' - '} 6:00 PM
                       </dd>
                     </div>
+                    {zone.minLiters && (
+                      <div className="flex justify-between">
+                        <dt className="text-yak-muted">Pedido mínimo</dt>
+                        <dd className="text-yak-navy font-medium">
+                          {zone.minLiters} litros
+                        </dd>
+                      </div>
+                    )}
                     {route && (
                       <div className="flex justify-between pt-2 border-t border-yak-line">
                         <dt className="text-yak-muted">Día de entrega</dt>
