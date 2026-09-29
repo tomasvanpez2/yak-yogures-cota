@@ -37,11 +37,11 @@ export default function FilosofiaPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-yak-navy/30 via-transparent to-transparent" />
             <div ref={heroReveal} className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 text-white">
               <h1 className="heading-display text-display-lg md:text-display-xl mb-5 text-balance">
-                <span className="text-white">Yogur artesanal.</span><br />
-                <span className="text-yak-mango">Lote por lote.</span>
+                <span className="text-white">Cuidado en pequeños lotes.</span><br />
+                <span className="text-yak-mango">Frescura y control en cada frasco.</span>
               </h1>
               <p className="body-copy-lg text-white/75 max-w-lg mx-auto">
-                Entregado fresco.
+                Lotes pequeños, producción cuidadosa.
               </p>
             </div>
           </div>
@@ -67,16 +67,13 @@ export default function FilosofiaPage() {
 
             <hr className="divider w-32 mx-auto" />
 
-            {/* Block 2 — De dónde viene la leche */}
+            {/* Block 2 — Lo que entra al frasco */}
             <article className="text-center max-w-3xl mx-auto">
               <h2 className="heading-section text-display-md md:text-display-lg mb-5 text-balance">
-                De dónde viene<br />
-                la leche.
+                Lo que entra al frasco.
               </h2>
               <p className="body-copy-lg max-w-xl mx-auto">
-                Leche fresca de la sabana de Bogotá. Sin conservantes, sin colorantes,
-                sin saborizantes artificiales. Lo que ves en la etiqueta es lo que hay
-                dentro: leche, fruta y cultivos.
+                Leche de alta calidad, fruta madura en su punto y fermentación natural. Sin aditivos químicos, sin almidones, sin espesantes. Nada más.
               </p>
             </article>
 
@@ -86,7 +83,7 @@ export default function FilosofiaPage() {
             <article className="text-center max-w-2xl mx-auto">
               <blockquote>
                 <p className="body-copy-lg md:text-display-sm text-yak-muted leading-relaxed italic">
-                  &ldquo;Cada botella contiene lo que debería: leche, fruta y cultivos.&rdquo;
+                  &ldquo;La confianza no se delega.&rdquo; YAK es una promesa diaria de calidad artesanal, transparencia y respeto por la vida.
                 </p>
               </blockquote>
             </article>
@@ -99,10 +96,10 @@ export default function FilosofiaPage() {
         <div className="container">
           <div ref={ingredientReveal} className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="heading-section text-display-md mb-3">
-              Ingredientes reales. Nada que esconder.
+              Fruta de verdad.
             </h2>
             <p className="body-copy">
-              Cinco sabores, una misma promesa: fruta de verdad, leche de la sabana, cero atajos.
+              Usamos fruta natural, madurada en su punto, que conserva sus trozos, sus nutrientes y su dulzor real.
             </p>
           </div>
           <div ref={flavorGrid} className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
@@ -132,17 +129,15 @@ export default function FilosofiaPage() {
         <div className="container-narrow">
           <div ref={sustainReveal} className="max-w-3xl mx-auto text-center">
             <h2 className="heading-section text-display-md md:text-display-lg mb-6 text-balance">
-              Botellas de vidrio.<br />
-              <span className="text-yak-mango">No es marketing.</span>
+              Vidrio que vuelve.
             </h2>
             <p className="body-copy-lg max-w-xl mx-auto mb-8">
-              Cada yogur viene en una botella de vidrio que puedes reutilizar docenas de veces.
-              No es un eslogan, es así como lo hacemos porque tiene sentido.
+              Conserva el sabor sin absorber olores y se usa una y otra vez. Devuélvelo y te descontamos $2.000 por botella.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <span className="badge-success">
                 <Recycle width={14} height={14} weight="regular" color="currentColor" aria-hidden="true" />
-                Retorno $2.000 c/u
+                Retorno $2.000 por botella
               </span>
               <span className="badge-primary">
                 <Gift width={14} height={14} weight="regular" color="currentColor" aria-hidden="true" />
@@ -158,10 +153,10 @@ export default function FilosofiaPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yak-mango/10 via-transparent to-yak-feijoa/10" />
         <div ref={ctaReveal} className="relative z-10 max-w-2xl mx-auto text-center">
           <h2 className="heading-display text-display-md md:text-display-lg mb-4 text-balance text-white">
-            Conoce nuestros sabores
+            Nutrición que protege el hogar
           </h2>
           <p className="body-copy-lg text-white/60 mb-8 max-w-lg mx-auto">
-            5 sabores, todos de 1 litro, hechos con ingredientes reales.
+            Alimentamos a las familias con la misma exigencia y el mismo amor con que cuidamos a nuestros hijos.
           </p>
           <Link
             href="/productos"

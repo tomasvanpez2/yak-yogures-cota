@@ -10,19 +10,19 @@ const STEPS = [
   {
     num: '01',
     title: 'Elige',
-    description: 'Selecciona los sabores y cantidades que quieres. Griego, fresa, mora, mango, feijoa — todos de 1 litro.',
+    description: 'Escoge tus sabores y cantidades.',
     icon: <ShoppingCartSimple width={28} height={28} weight="regular" color="currentColor" aria-hidden="true" />,
   },
   {
     num: '02',
     title: 'Recibe',
-    description: 'Entregamos en tu zona el día de ruta. Cada barrio tiene su día fijo — elige tu zona y te decimos cuándo llega.',
+    description: 'Entregamos el día de ruta de tu zona.',
     icon: <Truck width={28} height={28} weight="regular" color="currentColor" aria-hidden="true" />,
   },
   {
     num: '03',
     title: 'Paga',
-    description: 'Paga por transferencia bancaria con tu llave Bre-B. Reportas el pago y listo — confirmamos por WhatsApp.',
+    description: 'Transferencia y confirmamos por WhatsApp.',
     icon: <CreditCard width={28} height={28} weight="regular" color="currentColor" aria-hidden="true" />,
   },
 ]
@@ -56,7 +56,7 @@ export default function ComoFuncionaPage() {
           Cómo funciona
         </h1>
         <p className="body-copy-lg max-w-lg mx-auto">
-          Tres pasos. Sin complicaciones. Tu yogur artesanal llega fresco a tu puerta.
+          Elige, recibe y paga. Así de directo.
         </p>
       </section>
 

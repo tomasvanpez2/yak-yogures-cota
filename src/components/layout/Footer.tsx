@@ -13,7 +13,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="max-w-xs">
             <span className="font-display font-extrabold text-3xl md:text-4xl text-white tracking-tight">
-              yak
+              YAK
             </span>
             <p className="mt-4 text-body-sm text-white/55 leading-relaxed">
               Yogur artesanal hecho a mano en Cota.<br />
@@ -73,7 +73,7 @@ export default function Footer() {
             © {new Date().getFullYear()} YAK Yogurt. Todos los derechos reservados.
           </p>
           <p className="text-caption text-white/35">
-            Hecho con cuidado en Colombia
+            Cuidado en pequeños lotes
           </p>
         </div>
       </div>

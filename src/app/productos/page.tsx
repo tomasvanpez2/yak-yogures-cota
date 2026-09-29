@@ -11,11 +11,11 @@ import { useReveal, useStaggerReveal, usePressScale } from '@/lib/use-gsap'
 import { Minus, Plus, ShoppingCartSimple, Check } from '@phosphor-icons/react'
 
 const FLAVOR_TAGLINES: Record<string, string> = {
-  GRIEGO: 'Puro, natural y cremoso',
-  FRESA: 'Dulce y fresca con trozos reales',
-  MORA: 'Intenso sabor natural',
-  MANGO: 'Tropical, natural y suave',
-  FEIJOA: 'Exotico sabor colombiano',
+  GRIEGO: 'Denso y cremoso, sin espesantes.',
+  MORA: 'Mora madura, con su punto ácido.',
+  MANGO: 'Mango en su punto de madurez.',
+  FRESA: 'Con trozos de fresa.',
+  FEIJOA: 'El aroma inconfundible de la feijoa.',
 }
 
 const FLAVOR_ACCENT: Record<string, string> = {
@@ -50,13 +50,13 @@ export default function ProductosPage() {
         <div className="max-w-3xl">
           <span className="inline-flex items-center gap-2 text-label text-yak-muted mb-4">
             <span className="w-6 h-px bg-yak-mango" aria-hidden="true" />
-            Lotes pequeños en Cota
+            Lotes pequeños de Cota, Cundinamarca
           </span>
           <h1 className="font-display font-extrabold text-display-lg md:text-display-xl text-yak-navy mb-4 leading-[1.02] text-balance">
             Nuestros Yogures Artesanales
           </h1>
           <p className="text-body-lg text-yak-muted max-w-lg leading-relaxed">
-            Cada botella de vidrio es de 1 Litro, producida con leche fresca de Cota e ingredientes 100% reales.
+            Cada botella contiene probióticos naturales activos que cuidan suavemente la digestión de toda la familia.
           </p>
         </div>
       </section>
@@ -88,17 +88,17 @@ export default function ProductosPage() {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
-                      Programa Eco
+                      Retorno
                     </span>
                   </div>
                   <h3 className="font-display font-bold text-display-sm mb-3 text-yak-navy">
                     Retorno de Botellas
                   </h3>
                   <p className="text-body text-yak-muted/90 mb-5 max-w-md mx-auto md:mx-0">
-                    Descuento de <strong className="text-yak-navy">$2.000</strong> por cada botella de vidrio devuelta en tu siguiente pedido.
+                    Devuelve tus botellas y descuenta <strong className="text-yak-navy">$2.000</strong> por cada una.
                   </p>
                   <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-pill bg-yak-feijoa/10 text-caption font-medium text-yak-feijoa border border-yak-feijoa/20">
-                    Economía circular
+                    Botella de vidrio retornable
                   </span>
                 </div>
                 <div className="flex flex-col items-center gap-4">
@@ -112,7 +112,7 @@ export default function ProductosPage() {
                     />
                   </div>
                   <button className="btn-primary px-6 py-3 text-sm">
-                    Conocer mas
+                    Conocer más
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <line x1="5" y1="12" x2="19" y2="12" />
                       <polyline points="12 5 19 12 12 19" />
@@ -179,8 +179,8 @@ function LoyaltyCard() {
             Tu 10+1 en YAK
           </h3>
           <p className="text-body text-white/70 mb-6 max-w-sm mx-auto leading-relaxed">
-            Cada <strong className="text-white">10 yogures</strong> que pidas, el <strong className="text-white">11º es gratis</strong>.
-            Sin cuotas, sin vencimiento, solo por ser parte de la manada.
+            Cada <strong className="text-white">10 yogures</strong>, el <strong className="text-white">11 va por la casa</strong>.
+            Sin cuotas y sin vencimiento.
           </p>
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
@@ -301,8 +301,8 @@ function ProductCard({ product }: { product: typeof PRODUCTS[string] }) {
 
           {showSugarToggle && (
             <div className="mt-5">
-              <p className="input-label text-xs mb-3">Preferencia de azucar</p>
-              <div className="relative inline-flex" role="tablist" aria-label="Preferencia de azucar">
+              <p className="input-label text-xs mb-3">Preferencia de azúcar</p>
+              <div className="relative inline-flex" role="tablist" aria-label="Preferencia de azúcar">
                 <div className="flex items-center gap-1 bg-yak-griego/50 rounded-pill border border-yak-line p-1">
                   {(['CON', 'SIN'] as SugarOption[]).map((opt) => {
                     const active = sugar === opt
@@ -315,7 +315,7 @@ function ProductCard({ product }: { product: typeof PRODUCTS[string] }) {
                         className="relative z-10 px-5 py-2 text-caption font-semibold transition-colors duration-120 ease-out-expo min-h-[40px] min-w-[44px] flex items-center justify-center rounded-pill focus:outline-none"
                         style={{ color: active ? '#1B2A3A' : '#7A756E' }}
                       >
-                        {opt === 'CON' ? 'Con azucar' : 'Sin azucar'}
+                        {opt === 'CON' ? 'Con azúcar' : 'Sin azúcar'}
                       </button>
                     )
                   })}

@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
+import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import CartDrawer from "@/components/cart/CartDrawer";
 import WhatsAppFloatButton from "@/components/ui/WhatsAppFloatButton";
 
-const bricolage = Bricolage_Grotesque({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-bricolage",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const dmSans = DM_Sans({
@@ -75,7 +75,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-CO"
-      className={`${bricolage.variable} ${dmSans.variable}`}
+      className={`${spaceGrotesk.variable} ${dmSans.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-yak-cream text-yak-ink antialiased font-sans safer-inset-top safer-inset-left safer-inset-right safer-inset-bottom">
